@@ -258,14 +258,8 @@
   .chart-watermark-symbol {
     color: rgba(148, 163, 184, 0.07);
   }
-  .chart-watermark-tag {
-    color: rgba(148, 163, 184, 0.1);
-  }
   .light .chart-watermark-symbol {
     color: rgba(71, 85, 105, 0.07);
-  }
-  .light .chart-watermark-tag {
-    color: rgba(71, 85, 105, 0.1);
   }
 
   .light .bg-slate-950 { background-color: #f8fafc; }

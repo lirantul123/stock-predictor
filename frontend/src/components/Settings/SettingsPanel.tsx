@@ -111,25 +111,7 @@ export function SettingsPanel() {
 
           {/* Prediction */}
           <SettingsSection title="Prediction Settings" description="Configure forecast behavior">
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <label className="text-sm font-medium text-slate-300">Prediction Horizon</label>
-                  <span className="text-xs text-slate-500">{settings.predictionHorizon} days</span>
-                </div>
-                <select
-                  value={settings.predictionHorizon}
-                  onChange={(e) => updateSettings({ predictionHorizon: Number(e.target.value) })}
-                  className="select"
-                >
-                  <option value={1}>1 Day</option>
-                  <option value={3}>3 Days</option>
-                  <option value={5}>5 Days</option>
-                  <option value={10}>10 Days</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <ToggleRow
                   id="showVolume"
                   label="Show Volume"
@@ -151,7 +133,6 @@ export function SettingsPanel() {
                   checked={settings.autoRefresh}
                   onChange={(v) => updateSettings({ autoRefresh: v })}
                 />
-              </div>
             </div>
           </SettingsSection>
 

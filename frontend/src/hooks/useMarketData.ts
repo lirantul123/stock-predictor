@@ -99,8 +99,8 @@ export function useIndicators(symbol: string | null, interval: string = 'daily')
 
 export function usePrediction(symbol: string | null, horizon?: number) {
   const setPrediction = useMarketStore((s) => s.setCurrentPrediction)
-  const settingsHorizon = useUIStore((s) => s.settings.predictionHorizon)
-  const effectiveHorizon = horizon ?? settingsHorizon
+  const storedHorizon = useUIStore((s) => s.predictionHorizon)
+  const effectiveHorizon = horizon ?? storedHorizon
 
   const query = useQuery({
     queryKey: ['prediction', symbol, effectiveHorizon],

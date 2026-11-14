@@ -3,6 +3,7 @@ import { Chart } from '../Chart/Chart'
 import { chartTypes, type ChartType } from '../Chart/chartTypes'
 import { IndicatorPanel } from '../Indicators/IndicatorPanel'
 import { PredictionPanel } from '../Predictions/PredictionPanel'
+import { MLControls } from '../Predictions/MLControls'
 import { SignalGauge } from '../SignalGauge/SignalGauge'
 import { TechnicalSummary } from '../Analysis/TechnicalSummary'
 import { KeyLevels } from '../Analysis/KeyLevels'
@@ -16,7 +17,7 @@ import type { IChartApi } from 'lightweight-charts'
 
 export function Dashboard() {
   const { currentSymbol } = useMarketStore()
-  const { selectedTimeframe, settings, indicatorPanelOpen, predictionPanelOpen, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
+  const { selectedTimeframe, settings, indicatorPanelOpen, predictionPanelOpen, predictionHorizon, setPredictionHorizon, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
   const [chartType, setChartType] = useState<ChartType>('candles')
   const [chartApi, setChartApi] = useState<IChartApi | null>(null)
 
@@ -161,6 +162,30 @@ export function Dashboard() {
               }
             >
               <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2.5">
+                  <div>
+                    <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">Current Price</p>
+                    <p className="font-mono text-base font-bold leading-tight text-slate-100">
+                      {quote ? formatPrice(quote.price) : '—'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">Target</p>
+                    <p className={cn(
+                      'font-mono text-base font-bold leading-tight',
+                      (prediction?.predictions?.[prediction.predictions.length - 1]?.predictedClose ?? 0) >= (prediction?.currentPrice ?? 0)
+                        ? 'text-green-400'
+                        : 'text-red-400',
+                    )}>
+                      {prediction?.predictions?.length
+                        ? formatPrice(prediction.predictions[prediction.predictions.length - 1].predictedClose)
+                        : '—'}
+                    </p>
+                  </div>
+                </div>
+
+                <MLControls horizon={predictionHorizon} onHorizonChange={setPredictionHorizon} />
+
                 <SignalGauge prediction={prediction ?? null} unavailable={!!predictionError} />
                 <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} />
               </div>

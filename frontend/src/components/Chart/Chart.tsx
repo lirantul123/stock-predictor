@@ -471,12 +471,9 @@ export function Chart({
       <div ref={containerRef} className="w-full h-full" style={height ? { height } : undefined} />
 
       {symbol && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex select-none flex-col items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 z-10 flex select-none items-center justify-center">
           <span className="chart-watermark-symbol text-5xl font-bold tracking-tight sm:text-6xl">
             {symbol}
-          </span>
-          <span className="chart-watermark-tag mt-1.5 font-mono text-[10px] uppercase tracking-[0.25em]">
-            built on vibes &amp; gradient descent
           </span>
         </div>
       )}

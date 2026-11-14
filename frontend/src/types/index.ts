@@ -102,7 +102,6 @@ export interface UserSettings {
   theme: ThemeMode
   defaultTimeframe: Timeframe['value']
   enabledIndicators: string[]
-  predictionHorizon: number
   showVolume: boolean
   showPredictions: boolean
   autoRefresh: boolean

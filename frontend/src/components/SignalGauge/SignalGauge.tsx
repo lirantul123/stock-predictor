@@ -57,7 +57,7 @@ export function SignalGauge({ prediction, unavailable = false, className }: Sign
 
       <div className="grid grid-cols-3 gap-2">
         <GaugeStat label="Confidence" value={`${confidencePct}%`} />
-        <GaugeStat label="Horizon" value={`${prediction.horizon}d`} />
+        <GaugeStat label="Horizon" value={prediction.horizon} />
         <GaugeStat label="Model" value={prediction.modelVersion} />
       </div>
 

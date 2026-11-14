@@ -98,6 +98,7 @@ interface UIState {
   indicatorPanelOpen: boolean
   predictionPanelOpen: boolean
   selectedTimeframe: Timeframe['value']
+  predictionHorizon: number
   isLoading: boolean
   error: string | null
   updateSettings: (settings: Partial<UserSettings>) => void
@@ -107,6 +108,7 @@ interface UIState {
   toggleIndicatorPanel: () => void
   togglePredictionPanel: () => void
   setSelectedTimeframe: (timeframe: Timeframe['value']) => void
+  setPredictionHorizon: (days: number) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
 }
@@ -115,7 +117,6 @@ const defaultSettings: UserSettings = {
   theme: 'dark',
   defaultTimeframe: '1Y',
   enabledIndicators: ['rsi', 'macd', 'bollingerBands', 'volume'],
-  predictionHorizon: 5,
   showVolume: true,
   showPredictions: true,
   autoRefresh: true,
@@ -130,6 +131,7 @@ export const useUIStore = create<UIState>()(
       indicatorPanelOpen: true,
       predictionPanelOpen: true,
       selectedTimeframe: '1Y',
+      predictionHorizon: 5,
       isLoading: false,
       error: null,
 
@@ -146,6 +148,7 @@ export const useUIStore = create<UIState>()(
       togglePredictionPanel: () =>
         set((state) => ({ predictionPanelOpen: !state.predictionPanelOpen })),
       setSelectedTimeframe: (timeframe) => set({ selectedTimeframe: timeframe }),
+      setPredictionHorizon: (days) => set({ predictionHorizon: days }),
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
     }),
@@ -154,6 +157,7 @@ export const useUIStore = create<UIState>()(
       partialize: (state) => ({
         settings: state.settings,
         selectedTimeframe: state.selectedTimeframe,
+        predictionHorizon: state.predictionHorizon,
         sidebarOpen: state.sidebarOpen,
         indicatorPanelOpen: state.indicatorPanelOpen,
         predictionPanelOpen: state.predictionPanelOpen,
