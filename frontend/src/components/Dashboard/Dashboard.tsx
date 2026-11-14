@@ -5,7 +5,7 @@ import { SignalGauge } from '../SignalGauge/SignalGauge'
 import { MarketOverview } from '../MarketOverview/MarketOverview'
 import { PriceTicker } from '../PriceTicker/PriceTicker'
 import { useMarketStore, useUIStore } from '../../stores'
-import { useMarketData } from '../../hooks/useMarketData'
+import { useMarketData, usePopularSymbols } from '../../hooks/useMarketData'
 import { cn, formatPrice, formatChange, getChangeColor } from '../../utils/helpers'
 
 export function Dashboard() {
@@ -146,6 +146,9 @@ export function Dashboard() {
 }
 
 function EmptyState() {
+  const { data: popularSymbols } = usePopularSymbols()
+  const symbols = (popularSymbols ?? []).slice(0, 12)
+
   return (
     <div className="text-center max-w-md">
       <div className="mx-auto h-16 w-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
@@ -158,13 +161,14 @@ function EmptyState() {
         Use the search bar to find a stock, then view interactive charts, technical indicators, and ML-powered predictions.
       </p>
       <div className="grid grid-cols-3 gap-2">
-        {['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'SPY'].map((sym) => (
+        {symbols.map((sym) => (
           <button
-            key={sym}
-            onClick={() => useMarketStore.getState().setCurrentSymbol(sym)}
+            key={sym.symbol}
+            title={sym.name}
+            onClick={() => useMarketStore.getState().setCurrentSymbol(sym.symbol)}
             className="px-3 py-2 rounded-xl bg-slate-900/50 border border-slate-800 text-slate-300 font-mono font-medium hover:bg-slate-800 hover:text-slate-100 hover:border-slate-600 transition-all"
           >
-            {sym}
+            {sym.symbol}
           </button>
         ))}
       </div>

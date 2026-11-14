@@ -9,6 +9,80 @@ from app.config import settings
 from app.schemas import QuoteResponse, PricePoint, SymbolSearchResult
 
 
+POPULAR_SYMBOLS = [
+    ("AAPL", "Apple Inc."),
+    ("MSFT", "Microsoft Corporation"),
+    ("GOOGL", "Alphabet Inc."),
+    ("AMZN", "Amazon.com, Inc."),
+    ("TSLA", "Tesla, Inc."),
+    ("NVDA", "NVIDIA Corporation"),
+    ("META", "Meta Platforms, Inc."),
+    ("NFLX", "Netflix, Inc."),
+    ("AMD", "Advanced Micro Devices, Inc."),
+    ("INTC", "Intel Corporation"),
+    ("AVGO", "Broadcom Inc."),
+    ("ORCL", "Oracle Corporation"),
+    ("CRM", "Salesforce, Inc."),
+    ("ADBE", "Adobe Inc."),
+    ("CSCO", "Cisco Systems, Inc."),
+    ("QCOM", "Qualcomm Inc."),
+    ("TXN", "Texas Instruments Inc."),
+    ("AMAT", "Applied Materials, Inc."),
+    ("MU", "Micron Technology, Inc."),
+    ("IBM", "International Business Machines Corp."),
+    ("DELL", "Dell Technologies Inc."),
+    ("SMCI", "Super Micro Computer, Inc."),
+    ("ARM", "Arm Holdings plc"),
+    ("PLTR", "Palantir Technologies Inc."),
+    ("TTWO", "Take-Two Interactive Software, Inc."),
+    ("EA", "Electronic Arts Inc."),
+    ("RBLX", "Roblox Corporation"),
+    ("SPOT", "Spotify Technology S.A."),
+    ("UBER", "Uber Technologies, Inc."),
+    ("ABNB", "Airbnb, Inc."),
+    ("SHOP", "Shopify Inc."),
+    ("COIN", "Coinbase Global, Inc."),
+    ("HOOD", "Robinhood Markets, Inc."),
+    ("SOFI", "SoFi Technologies, Inc."),
+    ("JPM", "JPMorgan Chase & Co."),
+    ("V", "Visa Inc."),
+    ("MA", "Mastercard Inc."),
+    ("BAC", "Bank of America Corp."),
+    ("GS", "Goldman Sachs Group, Inc."),
+    ("MS", "Morgan Stanley"),
+    ("WMT", "Walmart Inc."),
+    ("COST", "Costco Wholesale Corp."),
+    ("PG", "Procter & Gamble Co."),
+    ("KO", "Coca-Cola Co."),
+    ("PEP", "PepsiCo, Inc."),
+    ("JNJ", "Johnson & Johnson"),
+    ("LLY", "Eli Lilly and Co."),
+    ("UNH", "UnitedHealth Group Inc."),
+    ("MRK", "Merck & Co., Inc."),
+    ("PFE", "Pfizer Inc."),
+    ("ABBV", "AbbVie Inc."),
+    ("TMO", "Thermo Fisher Scientific Inc."),
+    ("DIS", "Walt Disney Co."),
+    ("BA", "Boeing Co."),
+    ("CAT", "Caterpillar Inc."),
+    ("GE", "General Electric Co."),
+    ("F", "Ford Motor Co."),
+    ("SBUX", "Starbucks Corp."),
+    ("MCD", "McDonald's Corp."),
+    ("NKE", "Nike, Inc."),
+    ("HD", "Home Depot, Inc."),
+    ("LOW", "Lowe's Companies, Inc."),
+    ("XOM", "Exxon Mobil Corp."),
+    ("CVX", "Chevron Corp."),
+    ("BABA", "Alibaba Group Holding Ltd."),
+    ("TSM", "Taiwan Semiconductor Manufacturing Co."),
+    ("NVO", "Novo Nordisk A/S"),
+    ("SAP", "SAP SE"),
+    ("TM", "Toyota Motor Corp."),
+    ("SONY", "Sony Group Corp."),
+]
+
+
 class YahooFinanceClient:
     """Yahoo Finance market-data provider using its public chart/search APIs."""
 
@@ -111,8 +185,16 @@ class YahooFinanceClient:
         return await self._run(fetch)
 
     async def get_popular_symbols(self) -> List[SymbolSearchResult]:
-        popular = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX"]
-        return [SymbolSearchResult(symbol=symbol, name=symbol) for symbol in popular]
+        return [
+            SymbolSearchResult(
+                symbol=symbol,
+                name=name,
+                type="EQUITY",
+                region="NMS",
+                currency="USD",
+            )
+            for symbol, name in POPULAR_SYMBOLS
+        ]
 
     async def get_global_quote(self, symbol: str) -> QuoteResponse:
         symbol = symbol.upper()

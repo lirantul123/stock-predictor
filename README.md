@@ -46,12 +46,17 @@ docker-compose up --build
 # WebSocket: ws://localhost:8000/ws
 ```
 
-### Train Initial Models
+### Train Models
 
 ```bash
-# After backend is running, train models for popular symbols
+# Train the default watchlist (AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, AMD, TTWO)
 docker-compose exec backend python scripts/train_models.py
+
+# Train specific symbols
+docker-compose exec backend python scripts/train_models.py AAPL MSFT TTWO
 ```
+
+Models are stored in `ml-artifacts/` (one `.pth`, `.pkl`, and `.json` per symbol).
 
 ## Project Structure
 

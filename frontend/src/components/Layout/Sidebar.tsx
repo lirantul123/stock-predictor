@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { cn } from '../../utils/helpers'
 import { useMarketStore } from '../../stores'
 import { useToastStore } from '../../stores/toast'
-import { useWatchlist } from '../../hooks/useMarketData'
+import { useWatchlist, usePopularSymbols } from '../../hooks/useMarketData'
 import type { WatchlistItem } from '../../types'
 
 interface SidebarProps {
@@ -51,18 +51,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     })
   }
 
-  const popularSymbols: { symbol: string; name: string }[] = [
-    { symbol: 'AAPL', name: 'Apple Inc.' },
-    { symbol: 'MSFT', name: 'Microsoft Corp.' },
-    { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-    { symbol: 'AMZN', name: 'Amazon.com Inc.' },
-    { symbol: 'TSLA', name: 'Tesla Inc.' },
-    { symbol: 'NVDA', name: 'NVIDIA Corp.' },
-    { symbol: 'META', name: 'Meta Platforms' },
-    { symbol: 'NFLX', name: 'Netflix Inc.' },
-    { symbol: 'SPY', name: 'SPDR S&P 500' },
-    { symbol: 'AMD', name: 'Advanced Micro Devices' },
-  ]
+  const { data: popularSymbols } = usePopularSymbols()
 
   return (
     <>
@@ -192,7 +181,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="pt-4 border-t border-slate-800/50">
               <p className="px-2 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Quick Add</p>
               <div className="grid grid-cols-2 gap-1.5 mt-2">
-                {popularSymbols.map((sym) => (
+                {(popularSymbols ?? []).map((sym) => (
                   <button
                     key={sym.symbol}
                     onClick={() => handleAddSymbol(sym.symbol, sym.name)}

@@ -16,8 +16,19 @@ import structlog
 
 logger = structlog.get_logger()
 
-# Symbols trained by the initial backfill
-POPULAR_SYMBOLS = ["AAPL", "MSFT", "TSLA"]
+# Symbols trained when no CLI arguments are provided
+DEFAULT_TRAINING_SYMBOLS = [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "TSLA",
+    "NVDA",
+    "META",
+    "NFLX",
+    "AMD",
+    "TTWO",
+]
 
 # Avoid hammering Yahoo Finance when training several symbols
 REQUEST_DELAY_SECONDS = 2
@@ -55,10 +66,12 @@ async def train_symbol(symbol: str):
 
 
 async def main():
-    logger.info("Starting initial model training", symbols=POPULAR_SYMBOLS)
+    symbols = sys.argv[1:] or DEFAULT_TRAINING_SYMBOLS
+    logger.info("Starting model training", symbols=symbols)
 
     results = {}
-    for i, symbol in enumerate(POPULAR_SYMBOLS):
+    for i, symbol in enumerate(symbols):
+        symbol = symbol.upper()
         success = await train_symbol(symbol)
         results[symbol] = success
 
@@ -66,7 +79,7 @@ async def main():
             logger.warning("Symbol training failed, continuing", symbol=symbol)
 
         # Short pause between symbols
-        if i < len(POPULAR_SYMBOLS) - 1:
+        if i < len(symbols) - 1:
             logger.info("Pausing before next symbol", seconds=REQUEST_DELAY_SECONDS)
             await asyncio.sleep(REQUEST_DELAY_SECONDS)
 
