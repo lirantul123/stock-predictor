@@ -30,7 +30,8 @@ services:
     environment:
       - DATABASE_URL=sqlite:///./stock_predictor.db
       - REDIS_URL=redis://redis:6379/0
-      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY:-demo}
+      - MARKET_DATA_PROVIDER=${MARKET_DATA_PROVIDER:-yfinance}
+      - MARKET_DATA_TIMEOUT_SECONDS=${MARKET_DATA_TIMEOUT_SECONDS:-30}
       - ENVIRONMENT=development
       - PYTHONPATH=/app
     depends_on:

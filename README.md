@@ -6,7 +6,7 @@ A professional stock prediction platform combining LSTM deep learning with techn
 
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS + TradingView Lightweight Charts
 - **Backend**: FastAPI + Python + SQLAlchemy + Socket.io + PyTorch
-- **Data**: Alpha Vantage (free tier: 25 requests/day)
+- **Data**: Yahoo Finance via yfinance (no API key or daily request limit)
 - **ML**: LSTM neural networks + ensemble with technical indicators
 - **Real-time**: WebSocket for live price updates
 - **Deployment**: Docker Compose (local development)
@@ -26,7 +26,7 @@ A professional stock prediction platform combining LSTM deep learning with techn
 ### Prerequisites
 
 - Docker & Docker Compose
-- Alpha Vantage API key (free at https://www.alphavantage.co/support/#api-key)
+- No market-data API key required (Yahoo Finance via yfinance)
 
 ### Development
 
@@ -34,9 +34,8 @@ A professional stock prediction platform combining LSTM deep learning with techn
 # Clone and navigate
 cd stock-predictor
 
-# Copy env file and add your API key
+# Copy env file
 cp backend/.env.example backend/.env
-# Edit backend/.env and set ALPHA_VANTAGE_API_KEY
 
 # Start all services
 docker-compose up --build
@@ -71,7 +70,7 @@ stock-predictor/
 ├── backend/                  # FastAPI + Python
 │   ├── app/
 │   │   ├── api/              # Routes + WebSocket
-│   │   ├── services/         # Alpha Vantage, Indicators, Predictions
+│   │   ├── services/         # Yahoo Finance, Indicators, Predictions
 │   │   ├── ml/               # LSTM models, training
 │   │   ├── models/           # SQLAlchemy models
 │   │   ├── schemas/          # Pydantic schemas
@@ -130,7 +129,7 @@ All indicators implemented without TA-Lib dependency:
 
 Key settings in `backend/app/config.py`:
 
-- `alpha_vantage_rate_limit`: 25/day (free tier)
+- `market_data_provider`: yfinance (configured in `backend/app/config.py`)
 - `sequence_length`: 30 days
 - `prediction_horizon_default`: 5 days
 - `model_retrain_schedule`: Weekly (Sunday 2 AM)

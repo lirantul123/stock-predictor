@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import time
 import numpy as np
 import pandas as pd
 from typing import List, Tuple, Optional, Dict, Any
@@ -131,7 +132,8 @@ class FeatureEngineer:
             raise ValueError(f"Need at least {self.sequence_length + 50} data points")
         
         features = []
-        
+        started_at = time.monotonic()
+
         for i in range(n):
             if i < 50:
                 features.append([0.0] * 20)
@@ -151,7 +153,7 @@ class FeatureEngineer:
                 window_volumes.tolist(),
             )
             
-            returns = np.diff(window_closes[-10:]) / window_closes[-11:-1]
+            returns = np.diff(window_closes[-11:]) / window_closes[-11:-1]
             volatility = np.std(returns) if len(returns) > 1 else 0
             volume_ratio = volumes[i] / np.mean(volumes[i-20:i]) if np.mean(volumes[i-20:i]) > 0 else 1
             
@@ -178,7 +180,9 @@ class FeatureEngineer:
                 1 if indicators.rsi_signal == "oversold" else (-1 if indicators.rsi_signal == "overbought" else 0),
             ]
             features.append(feat)
-        
+            if i == 0 or (i + 1) % 25 == 0:
+                logger.info("Feature engineering progress", point=i + 1, total=n, elapsed_seconds=round(time.monotonic() - started_at, 1))
+
         return np.array(features, dtype=np.float32)
     
     def prepare_sequences(
@@ -187,9 +191,9 @@ class FeatureEngineer:
         targets: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray]:
         X, y = [], []
-        for i in range(self.sequence_length, len(features) - 5):
+        for i in range(self.sequence_length, len(features)):
             X.append(features[i - self.sequence_length:i])
-            y.append(targets[i:i+5])
+            y.append(targets[i])
         return np.array(X), np.array(y)
 
 
@@ -236,10 +240,9 @@ class PredictionService:
             np.roll(future_returns, -3),
             np.roll(future_returns, -4),
         ])
-        targets = targets[:-5]
-        
-        X, y = self.feature_engineer.prepare_sequences(features_scaled[:-5], targets)
-        
+
+        X, y = self.feature_engineer.prepare_sequences(features_scaled, targets)
+
         return X, y, scaler
     
     def train_model(self, symbol: str, price_history: List[Dict]) -> Dict[str, Any]:
@@ -247,7 +250,7 @@ class PredictionService:
         
         X, y, scaler = self.prepare_training_data(price_history)
         
-        if len(X) < 100:
+        if len(X) < 10:
             raise ValueError("Insufficient training data")
         
         split_idx = int(len(X) * 0.8)

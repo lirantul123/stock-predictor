@@ -4,7 +4,7 @@ import json
 import time
 from typing import Dict, Set, Optional
 from app.config import settings
-from app.services.alpha_vantage import alpha_vantage
+from app.services.market_data import yfinance
 from app.services.indicator_engine import indicator_engine
 from app.services.prediction_service import prediction_service
 import structlog
@@ -46,7 +46,7 @@ async def unsubscribe(event_type: str, symbol: str, sid: str):
 
 async def broadcast_price_update(symbol: str):
     try:
-        quote = await alpha_vantage.get_global_quote(symbol)
+        quote = await yfinance.get_global_quote(symbol)
         data = quote.model_dump()
         subscribers = await get_symbol_subscribers("price", symbol)
         for sid in subscribers:
@@ -57,7 +57,7 @@ async def broadcast_price_update(symbol: str):
 
 async def broadcast_indicator_update(symbol: str):
     try:
-        points = await alpha_vantage.get_daily_adjusted(symbol, outputsize="compact")
+        points = await yfinance.get_daily_adjusted(symbol, outputsize="compact")
         if not points:
             return
         
@@ -97,7 +97,7 @@ async def broadcast_indicator_update(symbol: str):
 
 async def broadcast_prediction_update(symbol: str):
     try:
-        points = await alpha_vantage.get_daily_adjusted(symbol, outputsize="compact")
+        points = await yfinance.get_daily_adjusted(symbol, outputsize="compact")
         if not points or len(points) < 100:
             return
         
@@ -211,7 +211,7 @@ async def subscribe_price(sid, data):
     if symbol:
         await subscribe("price", symbol, sid)
         await sio.emit("subscribed", {"symbol": symbol, "type": "price"}, to=sid)
-        quote = await alpha_vantage.get_global_quote(symbol)
+        quote = await yfinance.get_global_quote(symbol)
         await sio.emit("price_update", quote.model_dump(), to=sid)
 
 

@@ -28,19 +28,27 @@ export function SettingsPanel() {
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-center">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-end sm:justify-center">
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={() => setIsOpen(false)}
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-md sm:max-w-lg glass rounded-t-2xl sm:rounded-xl shadow-xl overflow-hidden animate-slide-up">
-        <div className="flex items-center justify-between p-4 border-b border-slate-800">
-          <h2 className="text-lg font-semibold text-slate-100">Settings</h2>
+      <div className="relative w-full max-w-md sm:max-w-lg glass-panel shadow-2xl overflow-hidden animate-slide-up">
+        <div className="flex items-center justify-between p-5 border-b border-slate-800/50 bg-slate-900/80">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-600">
+              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold text-slate-100">Settings</h2>
+          </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+            className="p-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -48,36 +56,38 @@ export function SettingsPanel() {
           </button>
         </div>
 
-        <div className="p-4 space-y-6 max-h-[70vh] overflow-y-auto">
-          <div>
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Appearance</h3>
-            <div className="grid grid-cols-3 gap-2">
+        <div className="p-5 space-y-6 max-h-[75vh] overflow-y-auto">
+          {/* Appearance */}
+          <SettingsSection title="Appearance" description="Choose your preferred theme">
+            <div className="grid grid-cols-3 gap-3">
               {themes.map((theme) => (
                 <button
                   key={theme.value}
-                  onClick={() => updateSettings({ theme: theme.value })}
+                  onClick={() => {
+                    updateSettings({ theme: theme.value })
+                  }}
                   className={cn(
-                    'p-3 rounded-lg border-2 text-center transition-all',
+                    'flex flex-col items-center gap-2 p-3.5 rounded-2xl border transition-all duration-200',
                     settings.theme === theme.value
-                      ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                      : 'border-slate-700 text-slate-300 hover:border-slate-600 hover:bg-slate-800/50'
+                      ? 'border-primary-500 bg-primary-500/15 text-primary-400 shadow-glow'
+                      : 'border-slate-700/50 text-slate-400 hover:border-slate-600 hover:bg-slate-800/50'
                   )}
                 >
-                  <span className="text-2xl block mb-1">{theme.icon}</span>
-                  <span className="text-sm font-medium">{theme.label}</span>
+                  <span className="text-2xl">{theme.icon}</span>
+                  <span className="text-xs font-medium">{theme.label}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </SettingsSection>
 
-          <div className="border-t border-slate-800 pt-4">
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Technical Indicators</h3>
-            <p className="text-xs text-slate-500 mb-3">Select which indicators to display in the analysis panel</p>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+          {/* Indicators */}
+          <SettingsSection title="Technical Indicators" description="Select which indicators to display in the analysis panel">
+            <p className="text-xs text-slate-500 mb-3">Enable the indicators you want to track</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {allIndicators.map((ind) => (
                 <label
                   key={ind.key}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 hover:border-slate-600 hover:bg-slate-800/50 transition-colors cursor-pointer"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 transition-all cursor-pointer select-none"
                 >
                   <input
                     type="checkbox"
@@ -91,23 +101,26 @@ export function SettingsPanel() {
                     className="h-4 w-4 rounded border-slate-600 text-primary-600 focus:ring-primary-500 bg-slate-900"
                   />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-100">{ind.label}</p>
+                    <p className="text-sm font-medium text-slate-200">{ind.label}</p>
                     <p className="text-xs text-slate-500">{ind.description}</p>
                   </div>
                 </label>
               ))}
             </div>
-          </div>
+          </SettingsSection>
 
-          <div className="border-t border-slate-800 pt-4">
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Prediction Settings</h3>
+          {/* Prediction */}
+          <SettingsSection title="Prediction Settings" description="Configure forecast behavior">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Prediction Horizon</label>
+                <div className="flex justify-between mb-1">
+                  <label className="text-sm font-medium text-slate-300">Prediction Horizon</label>
+                  <span className="text-xs text-slate-500">{settings.predictionHorizon} days</span>
+                </div>
                 <select
                   value={settings.predictionHorizon}
                   onChange={(e) => updateSettings({ predictionHorizon: Number(e.target.value) })}
-                  className="input"
+                  className="select"
                 >
                   <option value={1}>1 Day</option>
                   <option value={3}>3 Days</option>
@@ -116,87 +129,60 @@ export function SettingsPanel() {
                 </select>
               </div>
 
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
+              <div className="space-y-2">
+                <ToggleRow
                   id="showVolume"
+                  label="Show Volume"
+                  description="Display volume histogram on chart"
                   checked={settings.showVolume}
-                  onChange={(e) => updateSettings({ showVolume: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-600 text-primary-600 focus:ring-primary-500 bg-slate-900"
+                  onChange={(v) => updateSettings({ showVolume: v })}
                 />
-                <label htmlFor="showVolume" className="text-sm text-slate-300 cursor-pointer">
-                  Show Volume
-                </label>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
+                <ToggleRow
                   id="showPredictions"
+                  label="Show Predictions on Chart"
+                  description="Display ML forecast line on chart"
                   checked={settings.showPredictions}
-                  onChange={(e) => updateSettings({ showPredictions: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-600 text-primary-600 focus:ring-primary-500 bg-slate-900"
+                  onChange={(v) => updateSettings({ showPredictions: v })}
                 />
-                <label htmlFor="showPredictions" className="text-sm text-slate-300 cursor-pointer">
-                  Show Predictions on Chart
-                </label>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
+                <ToggleRow
                   id="autoRefresh"
+                  label="Auto-refresh Data"
+                  description="Refresh market data periodically"
                   checked={settings.autoRefresh}
-                  onChange={(e) => updateSettings({ autoRefresh: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-600 text-primary-600 focus:ring-primary-500 bg-slate-900"
+                  onChange={(v) => updateSettings({ autoRefresh: v })}
                 />
-                <label htmlFor="autoRefresh" className="text-sm text-slate-300 cursor-pointer">
-                  Auto-refresh Data
-                </label>
               </div>
             </div>
-          </div>
+          </SettingsSection>
 
-          <div className="border-t border-slate-800 pt-4">
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Panels</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={toggleIndicatorPanel}
-                className={cn(
-                  'p-3 rounded-lg border-2 text-center transition-all text-sm font-medium',
-                  indicatorPanelOpen
-                    ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                    : 'border-slate-700 text-slate-300 hover:border-slate-600 hover:bg-slate-800/50'
-                )}
-              >
-                Indicators Panel
-              </button>
-              <button
-                onClick={togglePredictionPanel}
-                className={cn(
-                  'p-3 rounded-lg border-2 text-center transition-all text-sm font-medium',
-                  predictionPanelOpen
-                    ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                    : 'border-slate-700 text-slate-300 hover:border-slate-600 hover:bg-slate-800/50'
-                )}
-              >
-                Predictions Panel
-              </button>
+          {/* Panels */}
+          <SettingsSection title="Analysis Panels" description="Toggle the side analysis panels">
+            <div className="grid grid-cols-2 gap-3">
+              <PanelToggle
+                label="Indicators Panel"
+                active={indicatorPanelOpen}
+                onToggle={toggleIndicatorPanel}
+              />
+              <PanelToggle
+                label="Predictions Panel"
+                active={predictionPanelOpen}
+                onToggle={togglePredictionPanel}
+              />
             </div>
-          </div>
+          </SettingsSection>
 
-          <div className="border-t border-slate-800 pt-4">
-            <h3 className="text-sm font-medium text-slate-300 mb-3">About</h3>
+          {/* About */}
+          <SettingsSection title="About" description="Version and data sources">
             <div className="text-xs text-slate-500 space-y-1">
-              <p>Stock Predictor v0.1.0</p>
-              <p>Data provided by Alpha Vantage</p>
+              <p>Stock Predictor v0.2.0</p>
+              <p>Data provided by Yahoo Finance</p>
               <p>Charts by TradingView Lightweight Charts</p>
-              <p>ML: PyTorch LSTM + Technical Indicators</p>
+              <p className="text-primary-500">ML: PyTorch LSTM + Technical Indicators</p>
             </div>
-          </div>
+          </SettingsSection>
         </div>
 
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-5 border-t border-slate-800/50 bg-slate-900/80">
           <button
             onClick={() => setIsOpen(false)}
             className="w-full btn-primary"
@@ -206,5 +192,63 @@ export function SettingsPanel() {
         </div>
       </div>
     </div>
+  )
+}
+
+function SettingsSection({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</span>
+      </div>
+      <p className="text-[10px] text-slate-600">{description}</p>
+      <div className="border-t border-slate-800/50 pt-3">{children}</div>
+    </div>
+  )
+}
+
+function ToggleRow({
+  id,
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  id: string
+  label: string
+  description: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-xl border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 transition-colors">
+      <div className="flex-1">
+        <p className="text-sm font-medium text-slate-200">{label}</p>
+        <p className="text-xs text-slate-500">{description}</p>
+      </div>
+      <input
+        type="checkbox"
+        id={id}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-4 w-4 rounded border-slate-600 text-primary-600 focus:ring-primary-500 bg-slate-900"
+      />
+    </div>
+  )
+}
+
+function PanelToggle({ label, active, onToggle }: { label: string; active: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        'p-3 rounded-xl border-2 text-center transition-all duration-200',
+        active
+          ? 'border-primary-500 bg-primary-500/15 text-primary-400 shadow-glow'
+          : 'border-slate-700/50 text-slate-300 hover:border-slate-600 hover:bg-slate-800/50'
+      )}
+    >
+      <span className="text-sm font-medium">{label}</span>
+    </button>
   )
 }

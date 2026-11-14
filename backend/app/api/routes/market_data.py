@@ -14,7 +14,7 @@ from app.schemas import (
     WatchlistAdd,
     HealthResponse,
 )
-from app.services.alpha_vantage import alpha_vantage
+from app.services.market_data import yfinance
 from app.config import settings
 import structlog
 import time
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/symbols", tags=["symbols"])
 @router.get("/search", response_model=List[SymbolSearchResult])
 async def search_symbols(q: str = Query(..., min_length=1, max_length=10)):
     try:
-        results = await alpha_vantage.search_symbols(q)
+        results = await yfinance.search_symbols(q)
         return results
     except Exception as e:
         logger.error("Symbol search failed", query=q, error=str(e))
@@ -36,7 +36,7 @@ async def search_symbols(q: str = Query(..., min_length=1, max_length=10)):
 @router.get("/popular", response_model=List[SymbolSearchResult])
 async def get_popular_symbols():
     try:
-        results = await alpha_vantage.get_popular_symbols()
+        results = await yfinance.get_popular_symbols()
         return results
     except Exception as e:
         logger.error("Popular symbols failed", error=str(e))
@@ -47,7 +47,7 @@ async def get_popular_symbols():
 async def get_quote(symbol: str):
     symbol = symbol.upper()
     try:
-        quote = await alpha_vantage.get_global_quote(symbol)
+        quote = await yfinance.get_global_quote(symbol)
         return quote
     except Exception as e:
         logger.error("Quote failed", symbol=symbol, error=str(e))
@@ -74,10 +74,10 @@ async def get_history(
     
     try:
         if timeframe in ["1D", "1W", "1M"] and interval != "daily":
-            points = await alpha_vantage.get_intraday(symbol, interval=interval)
+            points = await yfinance.get_intraday(symbol, interval=interval)
         else:
             outputsize = "full" if timeframe in ["1Y", "ALL"] else "compact"
-            points = await alpha_vantage.get_daily_adjusted(symbol, outputsize=outputsize)
+            points = await yfinance.get_daily_adjusted(symbol, outputsize=outputsize)
         
         if not points:
             raise HTTPException(status_code=404, detail=f"No history for {symbol}")
@@ -104,9 +104,9 @@ async def get_indicators(
     
     try:
         if interval == "daily":
-            points = await alpha_vantage.get_daily_adjusted(symbol, outputsize="compact")
+            points = await yfinance.get_daily_adjusted(symbol, outputsize="compact")
         else:
-            points = await alpha_vantage.get_intraday(symbol, interval=interval, outputsize="compact")
+            points = await yfinance.get_intraday(symbol, interval=interval, outputsize="compact")
         
         if not points:
             raise HTTPException(status_code=404, detail=f"No data for {symbol}")
@@ -203,7 +203,7 @@ async def add_to_watchlist(item: WatchlistAdd, db: AsyncSession = Depends(get_db
         raise HTTPException(status_code=400, detail="Already in watchlist")
     
     try:
-        search_results = await alpha_vantage.search_symbols(symbol)
+        search_results = await yfinance.search_symbols(symbol)
         name = search_results[0].name if search_results else symbol
     except Exception:
         name = symbol

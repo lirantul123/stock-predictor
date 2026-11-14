@@ -7,7 +7,7 @@ from app.models import Symbol, PriceHistory, Prediction, ModelArtifact
 from app.schemas import PredictionResponse, PredictionPoint
 from app.services.prediction_service import prediction_service
 from app.services.indicator_engine import indicator_engine
-from app.services.alpha_vantage import alpha_vantage
+from app.services.market_data import yfinance
 from app.config import settings
 import structlog
 import time
@@ -25,7 +25,7 @@ async def get_prediction(
     symbol = symbol.upper()
     
     try:
-        points = await alpha_vantage.get_daily_adjusted(symbol, outputsize="compact")
+        points = await yfinance.get_daily_adjusted(symbol, outputsize="compact")
         
         if not points or len(points) < 100:
             raise HTTPException(status_code=404, detail=f"Insufficient data for {symbol}")
@@ -87,9 +87,9 @@ async def train_model(
     symbol = symbol.upper()
     
     try:
-        points = await alpha_vantage.get_daily_adjusted(symbol, outputsize="full")
+        points = await yfinance.get_daily_adjusted(symbol, outputsize="compact")
         
-        if not points or len(points) < 500:
+        if not points or len(points) < 80:
             raise HTTPException(status_code=400, detail=f"Insufficient data for training {symbol}")
         
         price_history = [

@@ -1,7 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import type { Quote, PricePoint, SymbolSearchResult, TechnicalIndicators, PredictionResult, Timeframe } from '../types'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -35,7 +35,7 @@ export const marketApi = {
   },
 
   getQuote: async (symbol: string): Promise<Quote> => {
-    const { data } = await api.get(`/api/quotes/${symbol}`)
+    const { data } = await api.get(`/api/symbols/${symbol}/quote`)
     return data
   },
 
@@ -43,7 +43,7 @@ export const marketApi = {
     symbol: string,
     timeframe: Timeframe['value'] = '1Y'
   ): Promise<PricePoint[]> => {
-    const { data } = await api.get(`/api/history/${symbol}`, { params: { timeframe } })
+    const { data } = await api.get(`/api/symbols/${symbol}/history`, { params: { timeframe } })
     return data
   },
 
@@ -52,7 +52,7 @@ export const marketApi = {
     interval: string = 'daily',
     indicators?: string[]
   ): Promise<TechnicalIndicators> => {
-    const { data } = await api.get(`/api/indicators/${symbol}`, {
+    const { data } = await api.get(`/api/symbols/${symbol}/indicators`, {
       params: { interval, indicators: indicators?.join(',') },
     })
     return data

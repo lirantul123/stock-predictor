@@ -17,11 +17,9 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
 
-    # Alpha Vantage
-    alpha_vantage_api_key: str = Field(default="demo", alias="ALPHA_VANTAGE_API_KEY")
-    alpha_vantage_base_url: str = "https://www.alphavantage.co/query"
-    alpha_vantage_rate_limit: int = 25  # requests per day for free tier
-    alpha_vantage_rate_limit_per_minute: int = 5
+    # Market data provider
+    market_data_provider: str = Field(default="yfinance", alias="MARKET_DATA_PROVIDER")
+    market_data_timeout_seconds: int = Field(default=30, alias="MARKET_DATA_TIMEOUT_SECONDS")
 
     # ML
     ml_artifacts_path: str = Field(default="./ml-artifacts", alias="ML_ARTIFACTS_PATH")
@@ -44,6 +42,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         case_sensitive = False
         protected_namespaces = ('settings_',)
+        extra = "ignore"
 
 
 settings = Settings()

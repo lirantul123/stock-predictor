@@ -195,13 +195,17 @@ class IndicatorEngine:
                 if di_sum > 0:
                     dx[i] = 100 * abs(plus_di[i] - minus_di[i]) / di_sum
         
-        adx_values = IndicatorEngine.sma([v for v in dx if v is not None], period)
-        
+        dx_values = [v for v in dx if v is not None]
+        adx_smoothed = IndicatorEngine.sma(dx_values, period)
+
+        adx_values = [None] * len(closes)
         trend = [None] * len(closes)
-        for i in range(len(closes)):
-            if adx_values[i] is not None:
-                trend[i] = "strong" if adx_values[i] > 25 else "weak"
-        
+        non_none_idx = [i for i, v in enumerate(dx) if v is not None]
+        for j, val in enumerate(adx_smoothed):
+            if val is not None and non_none_idx[j] < len(closes):
+                adx_values[non_none_idx[j]] = val
+                trend[non_none_idx[j]] = "strong" if val > 25 else "weak"
+
         return adx_values, trend
 
     @staticmethod

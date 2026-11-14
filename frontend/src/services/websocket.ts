@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client'
 import type { Quote, TechnicalIndicators, PredictionResult, PricePoint } from '../types'
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
+const WS_URL = import.meta.env.VITE_WS_URL || ''
 
 type EventCallback<T> = (data: T) => void
 

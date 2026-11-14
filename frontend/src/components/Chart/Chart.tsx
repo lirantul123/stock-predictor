@@ -30,7 +30,7 @@ export function Chart({
   predictions,
   indicators,
   volume = true,
-  height = 500,
+  height,
   className,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -111,9 +111,9 @@ export function Chart({
     const chartOptions: DeepPartial<ChartOptions> = {
       layout: {
         background: { type: ColorType.Solid, color: '#0f172a' },
-        textColor: '#94a3b8',
+        textColor: '#64748b',
         fontFamily: 'Inter, system-ui, sans-serif',
-        fontSize: 12,
+        fontSize: 11,
       },
       grid: {
         vertLines: { color: '#1e293b' },
@@ -121,16 +121,16 @@ export function Chart({
       },
       rightPriceScale: {
         borderColor: '#334155',
-        scaleMargins: { top: 0.1, bottom: 0.1 },
+        scaleMargins: { top: 0.15, bottom: 0.15 },
         autoScale: true,
       },
       timeScale: {
         borderColor: '#334155',
         timeVisible: true,
         secondsVisible: false,
-        rightOffset: 10,
-        barSpacing: 8,
-        minBarSpacing: 4,
+        rightOffset: 12,
+        barSpacing: 10,
+        minBarSpacing: 5,
       },
       crosshair: {
         mode: 1,
@@ -153,9 +153,11 @@ export function Chart({
     const chart = createChart(containerRef.current, chartOptions)
     chartRef.current = chart
 
-    chart.applyOptions({
-      height,
-    })
+    if (height) {
+      chart.applyOptions({
+        height,
+      })
+    }
 
     const candleSeries = chart.addCandlestickSeries({
       upColor: '#10b981',
@@ -186,7 +188,7 @@ export function Chart({
 
     if (predictions && predictions.length > 0) {
       const predSeries = chart.addLineSeries({
-        color: '#0ea5e9',
+        color: '#3b82f6',
         lineWidth: 2 as LineWidth,
         lineStyle: 2 as LineStyle,
         priceScaleId: 'right',
@@ -196,7 +198,7 @@ export function Chart({
       predSeries.setData(formatPrediction(predictions))
 
       const upperSeries = chart.addLineSeries({
-        color: 'rgba(14, 165, 233, 0.3)',
+        color: 'rgba(59, 130, 246, 0.25)',
         lineWidth: 1 as LineWidth,
         lineStyle: 3 as LineStyle,
         priceScaleId: 'right',
@@ -205,7 +207,7 @@ export function Chart({
       upperSeries.setData(formatBands(predictions, 'upperBound'))
 
       const lowerSeries = chart.addLineSeries({
-        color: 'rgba(14, 165, 233, 0.3)',
+        color: 'rgba(59, 130, 246, 0.25)',
         lineWidth: 1 as LineWidth,
         lineStyle: 3 as LineStyle,
         priceScaleId: 'right',
@@ -214,8 +216,8 @@ export function Chart({
       lowerSeries.setData(formatBands(predictions, 'lowerBound'))
 
       const areaSeries = chart.addAreaSeries({
-        topColor: 'rgba(14, 165, 233, 0.1)',
-        bottomColor: 'rgba(14, 165, 233, 0.02)',
+        topColor: 'rgba(59, 130, 246, 0.12)',
+        bottomColor: 'rgba(59, 130, 246, 0.02)',
         lineWidth: 0 as LineWidth,
         priceScaleId: 'right',
       })
@@ -249,7 +251,7 @@ export function Chart({
 
     if (indicators?.bollingerBands) {
       const upperSeries = chart.addLineSeries({
-        color: 'rgba(139, 92, 246, 0.5)',
+        color: 'rgba(139, 92, 246, 0.4)',
         lineWidth: 1 as LineWidth,
         lineStyle: 2 as LineStyle,
         priceScaleId: 'right',
@@ -261,7 +263,7 @@ export function Chart({
       })))
 
       const lowerSeries = chart.addLineSeries({
-        color: 'rgba(139, 92, 246, 0.5)',
+        color: 'rgba(139, 92, 246, 0.4)',
         lineWidth: 1 as LineWidth,
         lineStyle: 2 as LineStyle,
         priceScaleId: 'right',
@@ -277,7 +279,7 @@ export function Chart({
       if (containerRef.current) {
         chart.applyOptions({
           width: containerRef.current.clientWidth,
-          height,
+          height: height ?? containerRef.current.clientHeight,
         })
       }
     }
@@ -313,5 +315,11 @@ export function Chart({
     }
   }, [data, indicators, formatData, formatVolume, formatSMA])
 
-  return <div ref={containerRef} className={cn('w-full', className)} style={{ height }} />
+  return (
+    <div
+      ref={containerRef}
+      className={cn('w-full h-full', className)}
+      style={height ? { height } : undefined}
+    />
+  )
 }
