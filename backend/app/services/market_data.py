@@ -142,7 +142,7 @@ class YahooFinanceClient:
             if any(pd.isna(value) for value in (open_price, high, low, close)):
                 continue
             points.append(PricePoint(
-                timestamp=int(timestamp),
+                timestamp=int(timestamp) * 1000,
                 open=round(open_price, 2),
                 high=round(high, 2),
                 low=round(low, 2),

@@ -397,7 +397,7 @@ export function Chart({
       })
     }
 
-    const pointsByTime = new Map(data.map((p) => [p.timestamp, p]))
+    const pointsByTime = new Map(data.map((p) => [p.timestamp / 1000, p]))
 
     chart.subscribeCrosshairMove((param: MouseEventParams) => {
       if (!param.time) {

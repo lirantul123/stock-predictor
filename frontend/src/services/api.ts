@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
-import type { Quote, PricePoint, SymbolSearchResult, TechnicalIndicators, PredictionResult, Timeframe, WatchlistItem } from '../types'
+import type { Quote, PricePoint, SymbolSearchResult, TechnicalIndicators, PredictionResult, Timeframe, WatchlistItem, TrainedModel } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -72,6 +72,13 @@ export const marketApi = {
   getPopularSymbols: async (): Promise<SymbolSearchResult[]> => {
     const { data } = await api.get('/api/symbols/popular')
     return data
+  },
+}
+
+export const predictionApi = {
+  getModels: async (): Promise<TrainedModel[]> => {
+    const { data } = await api.get('/api/predictions/models/list')
+    return data.models ?? []
   },
 }
 

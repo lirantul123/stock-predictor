@@ -6,6 +6,7 @@ from app.schemas import (
     TechnicalIndicatorsResponse,
 )
 from app.services.indicator_engine import IndicatorEngine
+from app.services.market_data import YahooFinanceClient
 
 
 def test_quote_serializes_with_camel_case_aliases():
@@ -96,3 +97,25 @@ def test_sma_and_ema_values():
 
     assert IndicatorEngine.sma(prices, 5)[-1] == 8.0
     assert IndicatorEngine.ema(prices, 5)[-1] > 0
+
+
+def test_chart_points_timestamps_are_milliseconds():
+    result = {
+        "timestamp": [1_700_000_000],
+        "indicators": {
+            "quote": [
+                {
+                    "open": [100.0],
+                    "high": [101.0],
+                    "low": [99.0],
+                    "close": [100.5],
+                    "volume": [1000],
+                }
+            ]
+        },
+    }
+
+    points = YahooFinanceClient._chart_points(result)
+
+    assert len(points) == 1
+    assert points[0].timestamp == 1_700_000_000_000

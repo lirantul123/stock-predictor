@@ -6,6 +6,7 @@ import { TechnicalSummary } from '../Analysis/TechnicalSummary'
 import { KeyLevels } from '../Analysis/KeyLevels'
 import { MarketOverview } from '../MarketOverview/MarketOverview'
 import { PriceTicker } from '../PriceTicker/PriceTicker'
+import { SymbolIcon } from '../Common/SymbolIcon'
 import { useMarketStore, useUIStore } from '../../stores'
 import { useMarketData, usePopularSymbols } from '../../hooks/useMarketData'
 import { cn, formatPrice, formatChange, getChangeColor } from '../../utils/helpers'
@@ -50,9 +51,7 @@ export function Dashboard() {
             <div className="absolute top-0 left-0 right-0 p-4 pointer-events-none z-10">
               <div className="max-w-6xl mx-auto flex justify-between items-start">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-500/20 border border-primary-500/30">
-                    <span className="font-mono font-bold text-primary-300 text-sm">{currentSymbol}</span>
-                  </div>
+                  <SymbolIcon symbol={currentSymbol} size="lg" />
                   <div>
                     <p className="text-sm font-semibold text-slate-100">{currentSymbol}</p>
                     <p className="text-xs text-slate-500">{selectedTimeframe} · Real-time data</p>

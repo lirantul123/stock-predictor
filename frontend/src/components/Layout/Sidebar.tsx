@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { cn } from '../../utils/helpers'
 import { useMarketStore } from '../../stores'
 import { useToastStore } from '../../stores/toast'
-import { useWatchlist, usePopularSymbols } from '../../hooks/useMarketData'
+import { useWatchlist } from '../../hooks/useMarketData'
+import { AddSymbolModal } from './AddSymbolModal'
+import { SymbolIcon } from '../Common/SymbolIcon'
 import type { WatchlistItem } from '../../types'
 
 interface SidebarProps {
@@ -18,8 +20,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     watchlist: true,
   })
+  const [addModalOpen, setAddModalOpen] = useState(false)
 
-  const { items, add, remove, isInWatchlist } = useWatchlist()
+  const { items, remove } = useWatchlist()
   const { currentSymbol, setCurrentSymbol } = useMarketStore()
   const { add: addToast } = useToastStore()
 
@@ -31,27 +34,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     setCurrentSymbol(symbol)
     onClose()
   }
-
-  const handleAddSymbol = (symbol: string, name: string) => {
-    if (isInWatchlist(symbol)) {
-      addToast({
-        type: 'warning',
-        title: 'Already in watchlist',
-        message: `${symbol} is already being tracked.`,
-        duration: 3000,
-      })
-      return
-    }
-    add(symbol, name)
-    addToast({
-      type: 'success',
-      title: 'Added to watchlist',
-      message: `${symbol} added successfully.`,
-      duration: 3000,
-    })
-  }
-
-  const { data: popularSymbols } = usePopularSymbols()
 
   return (
     <>
@@ -141,6 +123,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                               : 'text-slate-300 hover:bg-slate-800/50 hover:text-slate-100 hover:border-slate-700 border border-transparent'
                           )}
                         >
+                          <SymbolIcon symbol={item.symbol} size="sm" />
                           <span className="font-mono font-medium flex-1 text-left truncate text-slate-100">
                             {item.symbol}
                           </span>
@@ -177,28 +160,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
             </div>
 
-            {/* Quick add */}
+            {/* Add symbol */}
             <div className="pt-4 border-t border-slate-800/50">
-              <p className="px-2 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Quick Add</p>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
-                {(popularSymbols ?? []).map((sym) => (
-                  <button
-                    key={sym.symbol}
-                    onClick={() => handleAddSymbol(sym.symbol, sym.name)}
-                    className={cn(
-                      'flex flex-col items-center gap-1 px-2 py-2 rounded-lg text-xs transition-all',
-                      isInWatchlist(sym.symbol)
-                        ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30'
-                        : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700 hover:text-slate-100 border border-transparent'
-                    )}
-                  >
-                    <span className="font-mono font-medium">{sym.symbol}</span>
-                    <span className="text-[10px] text-slate-500 truncate w-full text-center">
-                      {sym.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <button
+                onClick={() => setAddModalOpen(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-700 px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-primary-500/50 hover:bg-primary-500/10 hover:text-primary-300"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Symbol
+              </button>
             </div>
           </nav>
 
@@ -214,6 +186,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         </div>
       </aside>
+
+      <AddSymbolModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} />
     </>
   )
 }

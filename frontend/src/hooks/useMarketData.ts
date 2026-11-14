@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useCallback } from 'react'
-import { marketApi, watchlistApi } from '../services/api'
+import { marketApi, predictionApi, watchlistApi } from '../services/api'
 import { ws } from '../services/websocket'
 import { useMarketStore, useWatchlistStore, useUIStore } from '../stores'
 import type { Timeframe } from '../types'
@@ -22,16 +22,25 @@ export function usePopularSymbols() {
   })
 }
 
+export function useTrainedModels() {
+  return useQuery({
+    queryKey: ['models'],
+    queryFn: predictionApi.getModels,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useQuote(symbol: string | null) {
   const setQuote = useMarketStore((s) => s.setCurrentQuote)
   const setLoading = useUIStore((s) => s.setLoading)
+  const autoRefresh = useUIStore((s) => s.settings.autoRefresh)
 
   const query = useQuery({
     queryKey: ['quote', symbol],
     queryFn: () => marketApi.getQuote(symbol!),
     enabled: !!symbol,
     staleTime: 5000,
-    refetchInterval: 10000,
+    refetchInterval: autoRefresh ? 15000 : false,
   })
 
   useEffect(() => {
@@ -88,12 +97,14 @@ export function useIndicators(symbol: string | null, interval: string = 'daily')
   return query
 }
 
-export function usePrediction(symbol: string | null, horizon: number = 5) {
+export function usePrediction(symbol: string | null, horizon?: number) {
   const setPrediction = useMarketStore((s) => s.setCurrentPrediction)
+  const settingsHorizon = useUIStore((s) => s.settings.predictionHorizon)
+  const effectiveHorizon = horizon ?? settingsHorizon
 
   const query = useQuery({
-    queryKey: ['prediction', symbol, horizon],
-    queryFn: () => marketApi.getPrediction(symbol!, horizon),
+    queryKey: ['prediction', symbol, effectiveHorizon],
+    queryFn: () => marketApi.getPrediction(symbol!, effectiveHorizon),
     enabled: !!symbol,
     staleTime: 5 * 60 * 1000,
     retry: false,

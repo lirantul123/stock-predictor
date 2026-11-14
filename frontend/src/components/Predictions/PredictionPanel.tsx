@@ -117,7 +117,9 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
 
       {/* Forecast table */}
       <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-5">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">5-Day Forecast</h3>
+        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
+          {prediction.horizon}-Day Forecast
+        </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

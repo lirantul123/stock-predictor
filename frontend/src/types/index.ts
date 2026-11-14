@@ -76,6 +76,11 @@ export interface WatchlistItem {
   addedAt: number | string
 }
 
+export interface TrainedModel {
+  symbol: string
+  [key: string]: unknown
+}
+
 export interface Timeframe {
   value: '1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'
   label: string

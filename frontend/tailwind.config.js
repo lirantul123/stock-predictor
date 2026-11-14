@@ -121,6 +121,7 @@ export default {
         'spin-slow': 'spin 3s linear infinite',
         'bounce-soft': 'bounceSoft 2s infinite',
         'marquee': 'marquee 20s linear infinite',
+        'marquee-slow': 'marqueeSlow 30s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -150,6 +151,10 @@ export default {
         marquee: {
           '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(-100%)' },
+        },
+        marqueeSlow: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
       backdropBlur: {

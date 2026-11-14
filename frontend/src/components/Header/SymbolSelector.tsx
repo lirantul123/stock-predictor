@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { marketApi } from '../../services/api'
 import { useMarketStore, useWatchlistStore } from '../../stores'
 import { cn } from '../../utils/helpers'
+import { SymbolIcon } from '../Common/SymbolIcon'
 import type { SymbolSearchResult } from '../../types'
 
 interface SymbolSelectorProps {
@@ -81,7 +82,8 @@ export function SymbolSelector({ className }: SymbolSelectorProps) {
   }
 
   const getDisplayName = (symbol: SymbolSearchResult | { symbol: string; name: string }) => (
-    <span className="flex items-center gap-2">
+    <span className="flex items-center gap-2.5 min-w-0">
+      <SymbolIcon symbol={symbol.symbol} size="sm" />
       <span className="font-mono font-medium text-slate-100">{symbol.symbol}</span>
       <span className="text-sm text-slate-400 truncate max-w-[150px]">{symbol.name}</span>
     </span>
@@ -221,7 +223,8 @@ export function SymbolSelector({ className }: SymbolSelectorProps) {
 
       {currentSymbol && (
         <div className="mt-2 flex items-center gap-2">
-          <span className="px-3 py-1 rounded-lg bg-primary-500/20 text-primary-300 text-sm font-mono font-medium">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-primary-500/20 text-primary-300 text-sm font-mono font-medium">
+            <SymbolIcon symbol={currentSymbol} size="sm" />
             {currentSymbol}
           </span>
           <button

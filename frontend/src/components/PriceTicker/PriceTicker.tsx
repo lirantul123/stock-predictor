@@ -4,6 +4,7 @@ import { cn } from '@/utils/helpers'
 import { useWatchlistStore } from '@/stores'
 import { marketApi } from '@/services/api'
 import { formatPrice, formatChange } from '@/utils/helpers'
+import { SymbolIcon } from '../Common/SymbolIcon'
 
 interface PriceTickerProps {
   className?: string
@@ -14,22 +15,39 @@ export function PriceTicker({ className }: PriceTickerProps) {
   const [visibleSymbols, setVisibleSymbols] = useState<string[]>([])
 
   useEffect(() => {
-    const symbols = items.map((i) => i.symbol)
-    if (symbols.length === 0) {
-      setVisibleSymbols(['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA'])
-    } else {
-      setVisibleSymbols(symbols)
-    }
+    setVisibleSymbols(items.map((i) => i.symbol))
   }, [items])
 
+  if (visibleSymbols.length === 0) {
+    return (
+      <div
+        className={cn(
+          'flex items-center gap-2 border-b border-slate-800/50 bg-slate-900/60 px-4 py-2 backdrop-blur-md',
+          className
+        )}
+      >
+        <span className="text-[11px] text-slate-500">
+          Add symbols to your watchlist to see live prices here
+        </span>
+      </div>
+    )
+  }
+
+  const loopSymbols = [...visibleSymbols, ...visibleSymbols]
+
   return (
-    <div className={cn('relative overflow-hidden border-b border-slate-800/50 bg-slate-900/60 backdrop-blur-md', className)}>
-      <div className="relative flex items-center gap-6 px-4 py-2 animate-marquee">
-        {visibleSymbols.map((symbol) => (
-          <TickerItem key={symbol} symbol={symbol} />
-        ))}
-        {visibleSymbols.map((symbol) => (
-          <TickerItem key={symbol + '-dup'} symbol={symbol} />
+    <div
+      className={cn(
+        'relative overflow-hidden border-b border-slate-800/50 bg-slate-900/60 backdrop-blur-md',
+        className
+      )}
+    >
+      <div
+        className="flex w-max items-center animate-marquee-slow"
+        style={{ animationDuration: `${Math.max(visibleSymbols.length * 14, 30)}s` }}
+      >
+        {loopSymbols.map((symbol, index) => (
+          <TickerItem key={`${symbol}-${index}`} symbol={symbol} />
         ))}
       </div>
     </div>
@@ -41,12 +59,13 @@ function TickerItem({ symbol }: { symbol: string }) {
     queryKey: ['quote', symbol],
     queryFn: () => marketApi.getQuote(symbol),
     staleTime: 5000,
-    refetchInterval: 10000,
+    refetchInterval: 15000,
   })
 
   if (isLoading || !quote) {
     return (
-      <div className="flex items-center gap-2 whitespace-nowrap">
+      <div className="flex items-center gap-2 whitespace-nowrap px-2">
+        <SymbolIcon symbol={symbol} size="sm" />
         <span className="font-mono font-medium text-slate-400">{symbol}</span>
         <span className="h-3 w-16 rounded-full bg-slate-800/50 animate-pulse" />
       </div>
@@ -58,6 +77,7 @@ function TickerItem({ symbol }: { symbol: string }) {
 
   return (
     <div className="flex items-center gap-3 whitespace-nowrap px-2">
+      <SymbolIcon symbol={symbol} size="sm" />
       <span className="font-mono font-medium text-slate-200">{symbol}</span>
       <span className={cn('font-mono font-medium', color)}>{formatPrice(quote.price)}</span>
       <span className={cn('text-xs font-medium', color)}>
