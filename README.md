@@ -30,21 +30,40 @@ A professional stock prediction platform combining LSTM deep learning with techn
 
 ### Development
 
+**Option A — Docker (all services):**
+
 ```bash
-# Clone and navigate
 cd stock-predictor
-
-# Copy env file
 cp backend/.env.example backend/.env
-
-# Start all services
 docker-compose up --build
+```
 
+**Option B — Local (no Docker, two terminals):**
+
+```bash
+# Terminal 1 — backend on :8000
+cd backend
+cp .env.example .env        # first time only
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+
+# Terminal 2 — frontend on :5173
+cd frontend
+npm install                 # first time only
+npm run dev
+```
+
+The Vite dev server proxies `/api` and `/ws` to `localhost:8000`, so no extra
+env vars are needed. Open http://localhost:5173
+
+```bash
 # Frontend: http://localhost:5173
 # Backend API: http://localhost:8000
 # API Docs: http://localhost:8000/docs
 # WebSocket: ws://localhost:8000/ws
 ```
+
+> Redis is optional for local dev. Without it `/health` reports `degraded` and
+> the app falls back to in-process caching; price data and predictions still work.
 
 ### Train Models
 
