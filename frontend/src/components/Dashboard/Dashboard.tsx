@@ -2,6 +2,8 @@ import { Chart } from '../Chart/Chart'
 import { IndicatorPanel } from '../Indicators/IndicatorPanel'
 import { PredictionPanel } from '../Predictions/PredictionPanel'
 import { SignalGauge } from '../SignalGauge/SignalGauge'
+import { TechnicalSummary } from '../Analysis/TechnicalSummary'
+import { KeyLevels } from '../Analysis/KeyLevels'
 import { MarketOverview } from '../MarketOverview/MarketOverview'
 import { PriceTicker } from '../PriceTicker/PriceTicker'
 import { useMarketStore, useUIStore } from '../../stores'
@@ -37,10 +39,10 @@ export function Dashboard() {
         </div>
 
         {/* Chart + panels */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
+        <div className="flex-1 flex overflow-hidden min-h-0 items-start">
           {/* Chart area */}
           <div className={cn(
-            'flex-1 flex flex-col min-w-0 relative',
+            'flex-1 flex flex-col min-w-0 relative h-[calc(100vh-11rem)] min-h-[360px] max-h-[820px]',
             indicatorPanelOpen && predictionPanelOpen && 'lg:w-[60%]',
             indicatorPanelOpen && !predictionPanelOpen && 'lg:w-[70%]',
             !indicatorPanelOpen && predictionPanelOpen && 'lg:w-[70%]',
@@ -74,8 +76,9 @@ export function Dashboard() {
             <div className="flex-1 relative min-h-0">
               <Chart
                 data={history ?? []}
-                predictions={prediction?.predictions ?? []}
-                indicators={indicators ?? undefined}
+                symbol={currentSymbol}
+                predictions={settings.showPredictions ? prediction?.predictions ?? [] : []}
+                enabledIndicators={settings.enabledIndicators}
                 volume={settings.showVolume}
                 className="h-full"
               />
@@ -124,6 +127,8 @@ export function Dashboard() {
 
               <div className="p-4 space-y-5">
                 {predictionPanelOpen && <SignalGauge prediction={prediction ?? null} unavailable={!!predictionError} />}
+                <TechnicalSummary indicators={indicators ?? null} />
+                <KeyLevels history={history} indicators={indicators ?? null} />
                 {indicatorPanelOpen && <IndicatorPanel indicators={indicators ?? null} enabledIndicators={settings.enabledIndicators} />}
                 {predictionPanelOpen && <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} />}
               </div>

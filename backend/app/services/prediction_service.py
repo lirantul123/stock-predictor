@@ -359,15 +359,17 @@ class PredictionService:
         
         current_price = closes[-1]
         predictions = []
-        
+
+        base_uncertainty = float(np.sqrt(max(metadata.get("best_val_loss", 0.0001), 1e-8)))
+
         for i in range(min(horizon, 5)):
             pred_return = pred[i]
             pred_price = current_price * (1 + pred_return)
-            
-            uncertainty = abs(pred_return) * 0.5
+
+            uncertainty = base_uncertainty * (1 + i * 0.15)
             upper = pred_price * (1 + uncertainty)
             lower = pred_price * (1 - uncertainty)
-            confidence = max(0.3, 1.0 - uncertainty * 2)
+            confidence = max(0.3, min(0.95, 1.0 - base_uncertainty * 10 - i * 0.02))
             
             pred_date = datetime.utcnow() + timedelta(days=i+1)
             direction = "up" if pred_return > 0.005 else ("down" if pred_return < -0.005 else "flat")
