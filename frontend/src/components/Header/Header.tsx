@@ -34,14 +34,16 @@ export function Header() {
                   </svg>
                 </div>
               </div>
-              <span className="font-heading font-bold text-xl tracking-tight text-slate-100">Stock Predictor</span>
+              <span className="hidden font-heading font-bold text-xl tracking-tight text-slate-100 sm:inline">
+                Stock Predictor
+              </span>
             </div>
           </div>
 
           <div className="flex-1" />
 
           {/* Actions + user */}
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
             <TimeframeSelector />
 
             <div className="flex items-center gap-1">

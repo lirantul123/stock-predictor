@@ -20,16 +20,22 @@ export function TimeframeSelector({ className }: TimeframeSelectorProps) {
   ]
 
   return (
-    <div className={cn('flex items-center gap-1 bg-slate-900/50 border border-slate-700 rounded-lg p-1', className)}>
+    <div
+      className={cn(
+        'flex items-center gap-0.5 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900/50 p-0.5 sm:gap-1 sm:p-1',
+        className,
+      )}
+    >
       {timeframes.map((tf) => (
         <button
           key={tf.value}
           onClick={() => setSelectedTimeframe(tf.value)}
+          aria-pressed={selectedTimeframe === tf.value}
           className={cn(
-            'px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
+            'shrink-0 rounded-md px-1.5 py-1 text-[11px] font-medium transition-all duration-200 sm:px-2.5 sm:py-1.5 sm:text-xs',
             selectedTimeframe === tf.value
               ? 'bg-primary-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+              : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100',
           )}
         >
           {tf.label}

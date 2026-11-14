@@ -10,8 +10,8 @@ interface KeyLevelsProps {
 export function KeyLevels({ history, indicators, className }: KeyLevelsProps) {
   if (!history || history.length < 2) {
     return (
-      <div className={cn('rounded-2xl glass-panel p-5', className)}>
-        <div className="h-3 w-24 rounded-full bg-slate-800/60 animate-pulse mb-4" />
+      <div className={cn('rounded-xl border border-slate-800/70 bg-slate-950/40 p-4', className)}>
+        <div className="mb-3 h-3 w-24 animate-pulse rounded-full bg-slate-800/60" />
         <div className="h-2 w-full rounded-full bg-slate-800/60 animate-pulse mb-4" />
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4].map((i) => (
@@ -38,8 +38,8 @@ export function KeyLevels({ history, indicators, className }: KeyLevelsProps) {
   const aboveLow = ((current - low52) / current) * 100
 
   return (
-    <div className={cn('rounded-2xl glass-panel p-5', className)}>
-      <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Key Levels</h3>
+    <div className={cn('rounded-xl border border-slate-800/70 bg-slate-950/40 p-4', className)}>
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Key Levels · 52W</h3>
 
       <div>
         <div className="flex items-center justify-between text-[11px] mb-2">
@@ -62,14 +62,14 @@ export function KeyLevels({ history, indicators, className }: KeyLevelsProps) {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-1.5">
         <Stat label="Recent Low" value={formatPrice(low20)} />
         <Stat label="Recent High" value={formatPrice(high20)} />
         <Stat label="ATR (14)" value={atrPercent ? `${atrPercent.toFixed(2)}%` : '--'} />
         <Stat label="Avg Volume" value={formatVolume(averageVolume)} />
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-1.5 grid grid-cols-2 gap-1.5">
         <Stat label="To Range High" value={`${toHigh >= 0 ? '+' : ''}${toHigh.toFixed(1)}%`} />
         <Stat label="Above Range Low" value={`+${aboveLow.toFixed(1)}%`} />
       </div>
@@ -79,9 +79,9 @@ export function KeyLevels({ history, indicators, className }: KeyLevelsProps) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/50 px-2.5 py-2">
-      <p className="text-[10px] text-slate-500 uppercase tracking-wide">{label}</p>
-      <p className="text-xs font-mono font-semibold text-slate-200 mt-0.5">{value}</p>
+    <div className="rounded-lg border border-slate-800/70 bg-slate-900/40 px-2 py-1.5">
+      <p className="text-[9px] uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-0.5 font-mono text-[11px] font-semibold text-slate-200">{value}</p>
     </div>
   )
 }

@@ -1,6 +1,5 @@
 import { cn } from '@/utils/helpers'
 import type { TechnicalIndicators } from '@/types'
-import { StockHeader } from '../Common/StockHeader'
 
 interface TechnicalSummaryProps {
   indicators: TechnicalIndicators | null
@@ -98,12 +97,12 @@ export function TechnicalSummary({ indicators, symbol, className }: TechnicalSum
 
   if (!indicators) {
     return (
-      <div className={cn('rounded-2xl glass-panel p-5', className)}>
-        <div className="h-3 w-28 rounded-full bg-slate-800/60 animate-pulse mb-4" />
-        <div className="h-2 w-full rounded-full bg-slate-800/60 animate-pulse mb-4" />
+      <div className={cn('rounded-xl border border-slate-800/70 bg-slate-950/40 p-4', className)}>
+        <div className="mb-3 h-3 w-28 animate-pulse rounded-full bg-slate-800/60" />
+        <div className="mb-3 h-2 w-full animate-pulse rounded-full bg-slate-800/60" />
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-9 rounded-lg bg-slate-800/40 animate-pulse" />
+            <div key={i} className="h-8 animate-pulse rounded-lg bg-slate-800/40" />
           ))}
         </div>
       </div>
@@ -120,11 +119,19 @@ export function TechnicalSummary({ indicators, symbol, className }: TechnicalSum
     buy - sell >= 2 ? 'Bullish' : sell - buy >= 2 ? 'Bearish' : buy > sell ? 'Leaning Bullish' : sell > buy ? 'Leaning Bearish' : 'Neutral'
 
   return (
-    <div className={cn('rounded-2xl glass-panel p-5', className)}>
-      {symbol && <StockHeader symbol={symbol} className="mb-3" />}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Technical Summary</h3>
-        <span className={cn('text-xs font-semibold', verdict.includes('Bull') ? 'text-green-400' : verdict.includes('Bear') ? 'text-red-400' : 'text-slate-300')}>{verdict}</span>
+    <div className={cn('rounded-xl border border-slate-800/70 bg-slate-950/40 p-4', className)}>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Technical Verdict{symbol ? ` · ${symbol}` : ''}
+        </h3>
+        <span
+          className={cn(
+            'text-[11px] font-semibold',
+            verdict.includes('Bull') ? 'text-green-400' : verdict.includes('Bear') ? 'text-red-400' : 'text-slate-300',
+          )}
+        >
+          {verdict}
+        </span>
       </div>
 
       <div className="relative h-2 rounded-full bg-gradient-to-r from-red-500/70 via-yellow-500/70 to-green-500/70">
@@ -133,27 +140,27 @@ export function TechnicalSummary({ indicators, symbol, className }: TechnicalSum
           style={{ left: `${position}%` }}
         />
       </div>
-      <div className="mt-1.5 flex justify-between text-[10px] font-medium uppercase tracking-wide">
+      <div className="mt-1.5 flex justify-between text-[9px] font-medium uppercase tracking-wide">
         <span className="text-red-400/80">Sell</span>
         <span className="text-slate-500">Neutral</span>
         <span className="text-green-400/80">Buy</span>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-4 text-xs">
-        <span className="text-green-400 font-semibold">{buy} Buy</span>
+      <div className="mt-3 flex items-center justify-center gap-4 text-[11px]">
+        <span className="font-semibold text-green-400">{buy} Buy</span>
         <span className="text-slate-500">{neutral} Neutral</span>
-        <span className="text-red-400 font-semibold">{sell} Sell</span>
+        <span className="font-semibold text-red-400">{sell} Sell</span>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-1.5">
         {checks.map((check) => (
           <div
             key={check.label}
-            className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 px-2.5 py-2"
+            className="flex items-center justify-between rounded-lg border border-slate-800/70 bg-slate-900/40 px-2 py-1.5"
             title={`${check.label}: ${check.detail}`}
           >
-            <span className="text-[11px] text-slate-400">{check.label}</span>
-            <span className={cn('text-[11px] font-mono font-semibold', stateColor[check.state])}>
+            <span className="text-[10px] text-slate-400">{check.label}</span>
+            <span className={cn('text-[10px] font-semibold font-mono', stateColor[check.state])}>
               {check.detail}
             </span>
           </div>

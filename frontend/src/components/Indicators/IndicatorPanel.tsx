@@ -176,28 +176,28 @@ export function IndicatorPanel({ indicators, enabledIndicators, className }: Ind
         const signalLabel = getSignalLabel(signal)
 
         return (
-          <div key={key} className="rounded-xl bg-slate-900/50 border border-slate-800 p-4 hover:border-slate-700/60 transition-colors group">
-            <div className="flex items-center justify-between mb-3">
+          <div key={key} className="rounded-xl border border-slate-800/70 bg-slate-950/40 p-3 transition-colors hover:border-slate-700/70">
+            <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800/50">
-                  <svg className="h-4 w-4 text-slate-400 group-hover:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800/60">
+                  <svg className="h-3.5 w-3.5 text-slate-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={config.icon} />
                   </svg>
                 </div>
-                <span className="text-sm font-medium text-slate-300">{config.label}</span>
+                <span className="text-xs font-medium text-slate-300">{config.label}</span>
               </div>
               <span className={cn('text-xs font-mono font-medium px-2 py-1 rounded-full', signalClass, signalClass === 'text-green-400' && 'bg-green-500/15', signalClass === 'text-red-400' && 'bg-red-500/15', signalClass === 'text-slate-400' && 'bg-slate-800')}>
                 {signalLabel}
               </span>
             </div>
-            <div className="text-xl font-mono font-bold text-slate-100">{value}</div>
-            <p className="mt-1 text-[10px] leading-relaxed text-slate-500">{config.description}</p>
+            <div className="font-mono text-base font-bold text-slate-100">{value}</div>
+            <p className="mt-0.5 text-[10px] leading-snug text-slate-500">{config.description}</p>
             {config.getNumeric && (() => {
               const numeric = config.getNumeric(indicators)
               if (numeric == null) return null
               const position = clamp(numeric, 0, 100)
               return (
-                <div className="mt-3">
+                <div className="mt-2">
                   <div className="relative h-1.5 rounded-full bg-slate-800">
                     <div className="absolute inset-y-0 left-0 right-0 rounded-full bg-gradient-to-r from-green-500/70 via-yellow-500/70 to-red-500/70" />
                     <div
