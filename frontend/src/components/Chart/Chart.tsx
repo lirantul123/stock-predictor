@@ -220,12 +220,7 @@ export function Chart({
         pinch: true,
       },
       watermark: {
-        visible: !!symbol,
-        text: symbol ? `${symbol}\nmade by Liran` : '',
-        color: 'rgba(148, 163, 184, 0.07)',
-        fontSize: 48,
-        horzAlign: 'center',
-        vertAlign: 'center',
+        visible: false,
       },
       attributionLogo: false,
     } as DeepPartial<ChartOptions>)
@@ -474,6 +469,17 @@ export function Chart({
   return (
     <div className={cn('relative w-full h-full', className)}>
       <div ref={containerRef} className="w-full h-full" style={height ? { height } : undefined} />
+
+      {symbol && (
+        <div className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center select-none">
+          <span className="font-heading font-bold tracking-tight text-slate-400/[0.08] text-5xl sm:text-6xl">
+            {symbol}
+          </span>
+          <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.25em] text-slate-400/[0.11]">
+            built on vibes &amp; gradient descent
+          </span>
+        </div>
+      )}
 
       {legend && (
         <div className="pointer-events-none absolute bottom-9 left-3 z-10 flex items-center gap-3 rounded-lg border border-slate-800/70 bg-slate-950/75 px-3 py-1.5 font-mono text-[11px] backdrop-blur">

@@ -98,16 +98,19 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
 
       {/* Forecast */}
       <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-start justify-between gap-3 mb-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
               {prediction.horizon}-Day Forecast
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">{prediction.symbol} · LSTM price projection</p>
           </div>
-          <span className="text-xs font-mono text-slate-500">
-            {prediction.predictions.length} steps
-          </span>
+          <div className="rounded-lg border border-slate-800/70 bg-slate-950/60 px-2.5 py-1.5 text-right">
+            <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider">Current</p>
+            <p className="text-sm font-bold font-mono text-slate-100 leading-tight">
+              {formatPrice(prediction.currentPrice)}
+            </p>
+          </div>
         </div>
         <div className="space-y-2">
           {prediction.predictions.map((p, i) => {
