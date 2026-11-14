@@ -38,6 +38,10 @@
     overflow-x: hidden;
   }
 
+  .light body {
+    @apply bg-slate-50 text-slate-900;
+  }
+
   * {
     @apply border-slate-800;
   }
@@ -233,4 +237,49 @@
   .slide-up {
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+}
+
+/* Light theme overrides — remap slate-based surfaces to light equivalents.
+   Components use hardcoded slate-* classes (no dark: variants), so we flip them
+   here when <html> has .light. */
+@layer utilities {
+  .light .bg-slate-950 { background-color: #f8fafc; }
+  .light .bg-slate-900 { background-color: #f1f5f9; }
+  .light .bg-slate-900\/80 { background-color: rgba(241, 245, 249, 0.8); }
+  .light .bg-slate-900\/60 { background-color: rgba(241, 245, 249, 0.6); }
+  .light .bg-slate-900\/50 { background-color: rgba(241, 245, 249, 0.5); }
+  .light .bg-slate-900\/30 { background-color: rgba(241, 245, 249, 0.3); }
+  .light .bg-slate-800 { background-color: #e2e8f0; }
+  .light .bg-slate-800\/50 { background-color: rgba(226, 232, 240, 0.5); }
+  .light .bg-slate-800\/30 { background-color: rgba(226, 232, 240, 0.3); }
+
+  .light .text-slate-100 { color: #0f172a; }
+  .light .text-slate-200 { color: #1e293b; }
+  .light .text-slate-300 { color: #334155; }
+  .light .text-slate-400 { color: #475569; }
+  .light .text-slate-500 { color: #64748b; }
+  .light .text-slate-600 { color: #94a3b8; }
+
+  .light .border-slate-800 { border-color: #e2e8f0; }
+  .light .border-slate-800\/50 { border-color: rgba(226, 232, 240, 0.5); }
+  .light .border-slate-800\/60 { border-color: rgba(226, 232, 240, 0.6); }
+  .light .border-slate-700 { border-color: #cbd5e1; }
+  .light .border-slate-700\/50 { border-color: rgba(203, 213, 225, 0.5); }
+  .light .border-slate-700\/70 { border-color: rgba(203, 213, 225, 0.7); }
+  .light .border-slate-600 { border-color: #94a3b8; }
+
+  .light .glass {
+    background-color: rgba(248, 250, 252, 0.8);
+    border-color: #e2e8f0;
+  }
+  .light .glass-panel {
+    background-color: rgba(248, 250, 252, 0.9);
+    border-color: #e2e8f0;
+  }
+
+  .light .hover\:bg-slate-800:hover { background-color: #e2e8f0; }
+  .light .hover\:bg-slate-800\/50:hover { background-color: rgba(226, 232, 240, 0.5); }
+  .light .hover\:bg-slate-700:hover { background-color: #cbd5e1; }
+  .light .hover\:text-slate-100:hover { color: #0f172a; }
+  .light .hover\:text-slate-300:hover { color: #334155; }
 }

@@ -48,15 +48,50 @@ docker-compose up --build
 
 ### Train Models
 
+Train models so the ML predictions panel works for a symbol. A symbol without a
+trained model shows an **Untrained** badge in the watchlist and add-symbol modal;
+train it to enable LSTM forecasts.
+
+**All default symbols** (AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, AMD, TTWO):
+
 ```bash
-# Train the default watchlist (AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, AMD, TTWO)
+# Docker
 docker-compose exec backend python scripts/train_models.py
 
-# Train specific symbols
+# Local (from backend/, with the venv active)
+python scripts/train_models.py
+```
+
+**Specific symbols only:**
+
+```bash
+# Docker
 docker-compose exec backend python scripts/train_models.py AAPL MSFT TTWO
+
+# Local
+python scripts/train_models.py AAPL MSFT TTWO
+```
+
+**Train a single symbol:**
+
+```bash
+docker-compose exec backend python scripts/train_models.py NVDA
+```
+
+**Train via the API** (trains one symbol on demand, ~1–2 min):
+
+```bash
+curl -X POST http://localhost:8000/api/predictions/AAPL/train
+```
+
+**List trained models:**
+
+```bash
+curl http://localhost:8000/api/predictions/models/list
 ```
 
 Models are stored in `ml-artifacts/` (one `.pth`, `.pkl`, and `.json` per symbol).
+Re-run training any time to refresh a model with recent data.
 
 ## Project Structure
 

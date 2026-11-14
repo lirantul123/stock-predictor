@@ -17,6 +17,7 @@ import {
 } from 'lightweight-charts'
 import type { PricePoint, PredictionPoint } from '../../types'
 import { cn, formatTimestamp, formatVolume as formatVolumeLabel } from '../../utils/helpers'
+import { useUIStore } from '../../stores'
 
 type ChartType = 'candles' | 'line' | 'area'
 
@@ -61,6 +62,12 @@ export function Chart({
   const lastPriceLineRef = useRef<IPriceLine | null>(null)
   const [chartType, setChartType] = useState<ChartType>('candles')
   const [legend, setLegend] = useState<LegendData | null>(null)
+  const theme = useUIStore((s) => s.settings.theme)
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const chartBg = isDark ? '#0f172a' : '#f8fafc'
+  const chartText = isDark ? '#64748b' : '#475569'
+  const chartGrid = isDark ? '#1e293b' : '#e2e8f0'
+  const chartBorder = isDark ? '#334155' : '#cbd5e1'
 
   const normalize = useCallback((points: PricePoint[]): PricePoint[] => {
     const seen = new Set<number>()
@@ -178,22 +185,22 @@ export function Chart({
 
     const chart = createChart(containerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#0f172a' },
-        textColor: '#64748b',
+        background: { type: ColorType.Solid, color: chartBg },
+        textColor: chartText,
         fontFamily: 'Inter, system-ui, sans-serif',
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: '#1e293b' },
-        horzLines: { color: '#1e293b' },
+        vertLines: { color: chartGrid },
+        horzLines: { color: chartGrid },
       },
       rightPriceScale: {
-        borderColor: '#334155',
+        borderColor: chartBorder,
         scaleMargins: { top: 0.12, bottom: 0.12 },
         autoScale: true,
       },
       timeScale: {
-        borderColor: '#334155',
+        borderColor: chartBorder,
         timeVisible: true,
         secondsVisible: false,
         rightOffset: 12,
@@ -449,6 +456,11 @@ export function Chart({
     volume,
     height,
     chartType,
+    isDark,
+    chartBg,
+    chartText,
+    chartGrid,
+    chartBorder,
     formatData,
     formatLine,
     formatVolumeData,

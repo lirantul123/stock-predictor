@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Header } from './components/Header/Header'
 import { Sidebar } from './components/Layout/Sidebar'
 import { Dashboard } from './components/Dashboard/Dashboard'
@@ -8,12 +9,24 @@ import { cn } from './utils/helpers'
 
 function App() {
   const { sidebarOpen, settings } = useUIStore()
+  const isDark = settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (isDark) {
+      root.classList.add('dark')
+      root.classList.remove('light')
+    } else {
+      root.classList.add('light')
+      root.classList.remove('dark')
+    }
+  }, [isDark])
 
   return (
     <div
       className={cn(
         'min-h-screen flex flex-col',
-        settings.theme === 'dark' ? 'bg-slate-950 text-slate-100 dark' : 'bg-slate-50 text-slate-900',
+        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900',
       )}
     >
       <ToastContainer />

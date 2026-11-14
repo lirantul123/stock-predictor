@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { cn } from '../../utils/helpers'
 import { useMarketStore } from '../../stores'
 import { useToastStore } from '../../stores/toast'
-import { useWatchlist } from '../../hooks/useMarketData'
+import { useWatchlist, useTrainedModels } from '../../hooks/useMarketData'
 import { AddSymbolModal } from './AddSymbolModal'
 import { SymbolIcon } from '../Common/SymbolIcon'
 import type { WatchlistItem } from '../../types'
@@ -25,6 +25,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { items, remove } = useWatchlist()
   const { currentSymbol, setCurrentSymbol } = useMarketStore()
   const { add: addToast } = useToastStore()
+  const { data: trainedModels } = useTrainedModels()
+
+  const trainedSet = useMemo(
+    () => new Set((trainedModels ?? []).map((m) => m.symbol.toUpperCase())),
+    [trainedModels]
+  )
 
   const toggleSection = (section: keyof ExpandedSections) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }))
@@ -126,6 +132,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           <SymbolIcon symbol={item.symbol} size="sm" />
                           <span className="font-mono font-medium flex-1 text-left truncate text-slate-100">
                             {item.symbol}
+                          </span>
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium border flex-shrink-0',
+                              trainedSet.has(item.symbol.toUpperCase())
+                                ? 'bg-green-500/15 text-green-400 border-green-500/30'
+                                : 'bg-slate-700/50 text-slate-400 border-slate-600/50'
+                            )}
+                            title={trainedSet.has(item.symbol.toUpperCase()) ? 'Model trained' : 'No trained model'}
+                          >
+                            {trainedSet.has(item.symbol.toUpperCase()) ? 'Trained' : 'Untrained'}
                           </span>
                           <svg
                             className="h-3.5 w-3.5 text-yellow-400 flex-shrink-0"
