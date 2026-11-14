@@ -205,6 +205,7 @@ class PredictionService:
     
     def prepare_training_data(
         self,
+        symbol: str,
         price_history: List[Dict],
     ) -> Tuple[np.ndarray, np.ndarray, Any]:
         df = pd.DataFrame(price_history)
@@ -215,40 +216,36 @@ class PredictionService:
         lows = df['low'].values
         closes = df['close'].values
         volumes = df['volume'].values
-        
+
         features = self.feature_engineer.create_features(opens, highs, lows, closes, volumes)
-        
-        future_returns = np.zeros(len(closes))
-        for i in range(len(closes) - 5):
-            future_returns[i] = (closes[i+5] - closes[i]) / closes[i]
-        future_returns[-5:] = 0
-        
-        scaler = joblib.load(self.model_store._get_scaler_path("scaler")) if self.model_store._get_scaler_path("scaler").exists() else None
-        
-        if scaler is None:
-            from sklearn.preprocessing import StandardScaler
-            scaler = StandardScaler()
-            features_scaled = scaler.fit_transform(features)
-            joblib.dump(scaler, self.model_store._get_scaler_path("scaler"))
-        else:
-            features_scaled = scaler.transform(features)
-        
-        targets = np.column_stack([
-            future_returns,
-            np.roll(future_returns, -1),
-            np.roll(future_returns, -2),
-            np.roll(future_returns, -3),
-            np.roll(future_returns, -4),
-        ])
+
+        horizon = 5
+        valid_len = len(closes) - horizon
+        if valid_len <= self.feature_engineer.sequence_length:
+            raise ValueError("Insufficient training data")
+
+        features = features[:valid_len]
+
+        scaler_path = self.model_store._get_scaler_path(symbol)
+        from sklearn.preprocessing import StandardScaler
+        scaler = StandardScaler()
+        features_scaled = scaler.fit_transform(features)
+        joblib.dump(scaler, scaler_path)
+
+        targets = np.zeros((valid_len, horizon), dtype=np.float32)
+        for step in range(horizon):
+            current = closes[step:valid_len + step]
+            following = closes[step + 1:valid_len + step + 1]
+            targets[:, step] = (following - current) / current
 
         X, y = self.feature_engineer.prepare_sequences(features_scaled, targets)
 
         return X, y, scaler
-    
+
     def train_model(self, symbol: str, price_history: List[Dict]) -> Dict[str, Any]:
         logger.info("Training model", symbol=symbol)
         
-        X, y, scaler = self.prepare_training_data(price_history)
+        X, y, scaler = self.prepare_training_data(symbol, price_history)
         
         if len(X) < 10:
             raise ValueError("Insufficient training data")

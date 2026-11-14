@@ -81,7 +81,7 @@ function MetricCard({
   return (
     <div className="rounded-2xl glass-panel p-5">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl {c.bg} {c.border}">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${c.bg} ${c.border}`}>
           <svg className={cn('h-5 w-5', c.text)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
           </svg>

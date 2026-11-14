@@ -94,6 +94,7 @@ export const useWatchlistStore = create<WatchlistState>()(
 interface UIState {
   settings: UserSettings
   sidebarOpen: boolean
+  settingsOpen: boolean
   indicatorPanelOpen: boolean
   predictionPanelOpen: boolean
   selectedTimeframe: Timeframe['value']
@@ -102,6 +103,7 @@ interface UIState {
   updateSettings: (settings: Partial<UserSettings>) => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
+  setSettingsOpen: (open: boolean) => void
   toggleIndicatorPanel: () => void
   togglePredictionPanel: () => void
   setSelectedTimeframe: (timeframe: Timeframe['value']) => void
@@ -124,6 +126,7 @@ export const useUIStore = create<UIState>()(
     (set) => ({
       settings: defaultSettings,
       sidebarOpen: true,
+      settingsOpen: false,
       indicatorPanelOpen: true,
       predictionPanelOpen: true,
       selectedTimeframe: '1Y',
@@ -137,6 +140,7 @@ export const useUIStore = create<UIState>()(
 
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
+      setSettingsOpen: (open) => set({ settingsOpen: open }),
       toggleIndicatorPanel: () =>
         set((state) => ({ indicatorPanelOpen: !state.indicatorPanelOpen })),
       togglePredictionPanel: () =>

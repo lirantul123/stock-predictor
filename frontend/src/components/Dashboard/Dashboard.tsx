@@ -12,7 +12,7 @@ export function Dashboard() {
   const { currentSymbol } = useMarketStore()
   const { selectedTimeframe, settings, indicatorPanelOpen, predictionPanelOpen, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
 
-  const { quote, history, indicators, prediction, isLoading, isError, error, refetch } = useMarketData(currentSymbol, selectedTimeframe)
+  const { quote, history, indicators, prediction, predictionError, isLoading, isError, error, refetch } = useMarketData(currentSymbol, selectedTimeframe)
 
   const changeColor = quote ? getChangeColor(quote.change) : 'neutral'
 
@@ -123,9 +123,9 @@ export function Dashboard() {
               </div>
 
               <div className="p-4 space-y-5">
-                {predictionPanelOpen && <SignalGauge prediction={prediction ?? null} />}
+                {predictionPanelOpen && <SignalGauge prediction={prediction ?? null} unavailable={!!predictionError} />}
                 {indicatorPanelOpen && <IndicatorPanel indicators={indicators ?? null} enabledIndicators={settings.enabledIndicators} />}
-                {predictionPanelOpen && <PredictionPanel prediction={prediction ?? null} />}
+                {predictionPanelOpen && <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} />}
               </div>
             </aside>
           )}

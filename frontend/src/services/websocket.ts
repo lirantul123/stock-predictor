@@ -23,6 +23,7 @@ class WebSocketService {
       }
 
       this.socket = io(WS_URL, {
+        path: '/ws',
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,

@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select
 from typing import List, Optional
+from datetime import datetime
 from app.db.session import get_db
-from app.models import Symbol, PriceHistory, Watchlist
+from app.models import Watchlist
 from app.schemas import (
     SymbolSearchResult,
-    SymbolResponse,
     QuoteResponse,
     PriceHistoryResponse,
-    PricePoint,
+    TechnicalIndicatorsResponse,
     WatchlistItem,
     WatchlistAdd,
     HealthResponse,
@@ -62,22 +62,20 @@ async def get_history(
 ):
     symbol = symbol.upper()
     
-    interval_map = {
-        "1D": "5m",
-        "1W": "30m",
-        "1M": "60m",
-        "3M": "daily",
-        "1Y": "daily",
-        "ALL": "daily",
-    }
-    interval = interval_map.get(timeframe, "daily")
+    interval, range_ = {
+        "1D": ("5m", "1d"),
+        "1W": ("30m", "5d"),
+        "1M": ("60m", "1mo"),
+        "3M": ("1d", "3mo"),
+        "1Y": ("1d", "1y"),
+        "ALL": ("1d", "max"),
+    }.get(timeframe, ("1d", "1y"))
     
     try:
-        if timeframe in ["1D", "1W", "1M"] and interval != "daily":
-            points = await yfinance.get_intraday(symbol, interval=interval)
+        if timeframe in ["1D", "1W", "1M"]:
+            points = await yfinance.get_intraday(symbol, interval=interval, range_=range_)
         else:
-            outputsize = "full" if timeframe in ["1Y", "ALL"] else "compact"
-            points = await yfinance.get_daily_adjusted(symbol, outputsize=outputsize)
+            points = await yfinance.get_daily_adjusted(symbol, range_=range_)
         
         if not points:
             raise HTTPException(status_code=404, detail=f"No history for {symbol}")
@@ -90,7 +88,7 @@ async def get_history(
         raise HTTPException(status_code=500, detail="Failed to fetch history")
 
 
-@router.get("/{symbol}/indicators")
+@router.get("/{symbol}/indicators", response_model=TechnicalIndicatorsResponse)
 async def get_indicators(
     symbol: str,
     interval: str = Query("daily", regex="^(1m|5m|15m|30m|60m|daily)$"),
@@ -175,7 +173,7 @@ async def get_indicators(
         if requested is None or "obv" in requested:
             response["obv"] = result.obv
         
-        return response
+        return TechnicalIndicatorsResponse(**response)
     except HTTPException:
         raise
     except Exception as e:
@@ -259,6 +257,3 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         database=db_status,
         redis=redis_status,
     )
-
-
-from datetime import datetime

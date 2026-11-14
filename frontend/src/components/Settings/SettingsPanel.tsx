@@ -1,13 +1,13 @@
-import { useState } from 'react'
 import { cn } from '../../utils/helpers'
 import { useUIStore } from '../../stores'
 import type { ThemeMode } from '../../types'
 
 export function SettingsPanel() {
-  const { settings, updateSettings, indicatorPanelOpen, predictionPanelOpen, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
-  const [isOpen, setIsOpen] = useState(false)
+  const { settings, updateSettings, settingsOpen, setSettingsOpen, indicatorPanelOpen, predictionPanelOpen, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
 
-  if (!isOpen) return null
+  if (!settingsOpen) return null
+
+  const close = () => setSettingsOpen(false)
 
   const themes: { value: ThemeMode; label: string; icon: string }[] = [
     { value: 'dark', label: 'Dark', icon: '🌙' },
@@ -31,7 +31,7 @@ export function SettingsPanel() {
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-end sm:justify-center">
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={() => setIsOpen(false)}
+        onClick={() => close()}
         aria-hidden="true"
       />
 
@@ -47,7 +47,7 @@ export function SettingsPanel() {
             <h2 className="text-lg font-semibold text-slate-100">Settings</h2>
           </div>
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={() => close()}
             className="p-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +184,7 @@ export function SettingsPanel() {
 
         <div className="p-5 border-t border-slate-800/50 bg-slate-900/80">
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={() => close()}
             className="w-full btn-primary"
           >
             Done

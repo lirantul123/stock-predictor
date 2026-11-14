@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { cn } from '../../utils/helpers'
-import { useWatchlistStore, useMarketStore } from '../../stores'
+import { useMarketStore } from '../../stores'
 import { useToastStore } from '../../stores/toast'
+import { useWatchlist } from '../../hooks/useMarketData'
 import type { WatchlistItem } from '../../types'
 
 interface SidebarProps {
@@ -18,7 +19,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     watchlist: true,
   })
 
-  const { items, addItem, removeItem, isInWatchlist } = useWatchlistStore()
+  const { items, add, remove, isInWatchlist } = useWatchlist()
   const { currentSymbol, setCurrentSymbol } = useMarketStore()
   const { add: addToast } = useToastStore()
 
@@ -41,7 +42,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       })
       return
     }
-    addItem(symbol, name)
+    add(symbol, name)
     addToast({
       type: 'success',
       title: 'Added to watchlist',
@@ -133,11 +134,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   ) : (
                     <div className="space-y-1">
                       {items.map((item: WatchlistItem) => (
-                        <button
+                        <div
                           key={item.symbol}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => handleSymbolClick(item.symbol)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleSymbolClick(item.symbol)
+                            }
+                          }}
                           className={cn(
-                            'w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all',
+                            'w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all cursor-pointer',
                             currentSymbol === item.symbol
                               ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30 shadow-sm shadow-primary-500/10'
                               : 'text-slate-300 hover:bg-slate-800/50 hover:text-slate-100 hover:border-slate-700 border border-transparent'
@@ -156,7 +165,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              removeItem(item.symbol)
+                              remove(item.symbol)
                               addToast({
                                 type: 'info',
                                 title: 'Removed from watchlist',
@@ -171,7 +180,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   )}

@@ -45,24 +45,40 @@ export function Chart({
 
   const formatData = useCallback(
     (points: PricePoint[]): CandlestickData[] => {
-      return points.map((p) => ({
-        time: (p.timestamp / 1000) as UTCTimestamp,
-        open: p.open,
-        high: p.high,
-        low: p.low,
-        close: p.close,
-      }))
+      const seen = new Set<number>()
+      return points
+        .filter((p) => {
+          if (seen.has(p.timestamp)) return false
+          seen.add(p.timestamp)
+          return true
+        })
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .map((p) => ({
+          time: (p.timestamp / 1000) as UTCTimestamp,
+          open: p.open,
+          high: p.high,
+          low: p.low,
+          close: p.close,
+        }))
     },
     []
   )
 
   const formatVolume = useCallback(
     (points: PricePoint[]): HistogramData[] => {
-      return points.map((p) => ({
-        time: (p.timestamp / 1000) as UTCTimestamp,
-        value: p.volume,
-        color: p.close >= p.open ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)',
-      }))
+      const seen = new Set<number>()
+      return points
+        .filter((p) => {
+          if (seen.has(p.timestamp)) return false
+          seen.add(p.timestamp)
+          return true
+        })
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .map((p) => ({
+          time: (p.timestamp / 1000) as UTCTimestamp,
+          value: p.volume,
+          color: p.close >= p.open ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)',
+        }))
     },
     []
   )
@@ -214,17 +230,6 @@ export function Chart({
       })
       lowerBandSeriesRef.current = lowerSeries
       lowerSeries.setData(formatBands(predictions, 'lowerBound'))
-
-      const areaSeries = chart.addAreaSeries({
-        topColor: 'rgba(59, 130, 246, 0.12)',
-        bottomColor: 'rgba(59, 130, 246, 0.02)',
-        lineWidth: 0 as LineWidth,
-        priceScaleId: 'right',
-      })
-      areaSeries.setData([
-        ...formatBands(predictions, 'upperBound').map((p) => ({ ...p, value: p.value })),
-        ...formatBands(predictions, 'lowerBound').reverse().map((p) => ({ ...p, value: p.value })),
-      ])
     }
 
     if (indicators?.sma20) {

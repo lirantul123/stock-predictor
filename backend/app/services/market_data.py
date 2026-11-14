@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import Any, List
+from typing import Any, List, Optional
 
 import pandas as pd
 import requests
@@ -149,18 +149,31 @@ class YahooFinanceClient:
 
         return await self._run(fetch)
 
-    async def get_daily_adjusted(self, symbol: str, outputsize: str = "compact") -> List[PricePoint]:
+    async def get_daily_adjusted(
+        self,
+        symbol: str,
+        outputsize: str = "compact",
+        range_: Optional[str] = None,
+    ) -> List[PricePoint]:
         symbol = symbol.upper()
-        range_ = "1y" if outputsize == "compact" else "max"
+        if range_ is None:
+            range_ = "1y" if outputsize == "compact" else "max"
 
         def fetch() -> List[PricePoint]:
             return self._chart_points(self._chart(symbol, range_, "1d"))
 
         return await self._run(fetch)
 
-    async def get_intraday(self, symbol: str, interval: str = "5m", outputsize: str = "compact") -> List[PricePoint]:
+    async def get_intraday(
+        self,
+        symbol: str,
+        interval: str = "5m",
+        outputsize: str = "compact",
+        range_: Optional[str] = None,
+    ) -> List[PricePoint]:
         symbol = symbol.upper()
-        range_ = "5d" if outputsize == "compact" else "60d"
+        if range_ is None:
+            range_ = "5d" if outputsize == "compact" else "60d"
 
         def fetch() -> List[PricePoint]:
             return self._chart_points(self._chart(symbol, range_, interval))

@@ -1,15 +1,25 @@
 import socketio
 import asyncio
-import json
 import time
-from typing import Dict, Set, Optional
-from app.config import settings
+from datetime import datetime
+from typing import Any, Dict, Set
+
+from pydantic.alias_generators import to_camel
+
 from app.services.market_data import yfinance
 from app.services.indicator_engine import indicator_engine
 from app.services.prediction_service import prediction_service
 import structlog
 
 logger = structlog.get_logger()
+
+
+def camelize(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {to_camel(key): camelize(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [camelize(item) for item in value]
+    return value
 
 sio = socketio.AsyncServer(
     async_mode="asgi",
@@ -47,7 +57,7 @@ async def unsubscribe(event_type: str, symbol: str, sid: str):
 async def broadcast_price_update(symbol: str):
     try:
         quote = await yfinance.get_global_quote(symbol)
-        data = quote.model_dump()
+        data = camelize(quote.model_dump())
         subscribers = await get_symbol_subscribers("price", symbol)
         for sid in subscribers:
             await sio.emit("price_update", data, to=sid)
@@ -72,17 +82,17 @@ async def broadcast_indicator_update(symbol: str):
         data = {
             "symbol": symbol,
             "indicators": {
-                "rsi": {"value": result.rsi_value, "signal": result.rsi_signal} if result.rsi_value else None,
-                "macd": {"macd": result.macd_value, "signal": result.macd_signal, "histogram": result.macd_histogram, "trend": result.macd_trend} if result.macd_value else None,
-                "bollinger_bands": {"upper": result.bb_upper, "middle": result.bb_middle, "lower": result.bb_lower, "position": result.bb_position} if result.bb_upper else None,
-                "sma_20": result.sma_20,
-                "sma_50": result.sma_50,
-                "sma_200": result.sma_200,
-                "ema_20": result.ema_20,
-                "ema_50": result.ema_50,
-                "stochastic": {"k": result.stochastic_k, "d": result.stochastic_d, "signal": result.stochastic_signal} if result.stochastic_k else None,
+                "rsi": {"value": result.rsi_value, "signal": result.rsi_signal} if result.rsi_value is not None else None,
+                "macd": {"macd": result.macd_value, "signal": result.macd_signal, "histogram": result.macd_histogram, "trend": result.macd_trend} if result.macd_value is not None else None,
+                "bollingerBands": {"upper": result.bb_upper, "middle": result.bb_middle, "lower": result.bb_lower, "position": result.bb_position} if result.bb_upper is not None else None,
+                "sma20": result.sma_20,
+                "sma50": result.sma_50,
+                "sma200": result.sma_200,
+                "ema20": result.ema_20,
+                "ema50": result.ema_50,
+                "stochastic": {"k": result.stochastic_k, "d": result.stochastic_d, "signal": result.stochastic_signal} if result.stochastic_k is not None else None,
                 "atr": result.atr,
-                "adx": {"value": result.adx_value, "trend": result.adx_trend} if result.adx_value else None,
+                "adx": {"value": result.adx_value, "trend": result.adx_trend} if result.adx_value is not None else None,
                 "obv": result.obv,
             },
             "timestamp": int(time.time() * 1000),
@@ -122,20 +132,24 @@ async def broadcast_prediction_update(symbol: str):
         ]
         
         ensemble = prediction_service.get_ensemble_prediction(symbol, price_history, indicators, 5)
-        
-        data = {
+
+        if not ensemble.get("ml_predictions"):
+            return
+
+        data = camelize({
             "symbol": symbol,
-            "prediction": {
-                "ensemble_signal": ensemble["ensemble_signal"],
-                "ml_signal": ensemble["ml_signal"],
-                "technical_signal": ensemble["technical_signal"],
-                "agreement": ensemble["agreement"],
-                "confidence": ensemble["confidence"],
-                "ml_predictions": ensemble["ml_predictions"],
-                "model_version": ensemble["model_version"],
-            },
+            "horizon": "5d",
+            "current_price": closes[-1],
+            "predictions": ensemble["ml_predictions"],
+            "ensemble_signal": ensemble["ensemble_signal"],
+            "ml_signal": ensemble["ml_signal"],
+            "technical_signal": ensemble["technical_signal"],
+            "agreement": ensemble["agreement"],
+            "confidence": ensemble["confidence"],
+            "model_version": ensemble["model_version"],
+            "generated_at": datetime.utcnow().isoformat(),
             "timestamp": int(time.time() * 1000),
-        }
+        })
         
         subscribers = await get_symbol_subscribers("predictions", symbol)
         for sid in subscribers:
@@ -211,8 +225,12 @@ async def subscribe_price(sid, data):
     if symbol:
         await subscribe("price", symbol, sid)
         await sio.emit("subscribed", {"symbol": symbol, "type": "price"}, to=sid)
-        quote = await yfinance.get_global_quote(symbol)
-        await sio.emit("price_update", quote.model_dump(), to=sid)
+        try:
+            quote = await yfinance.get_global_quote(symbol)
+            await sio.emit("price_update", camelize(quote.model_dump()), to=sid)
+        except Exception as e:
+            logger.warning("Initial quote failed", symbol=symbol, error=str(e))
+            await sio.emit("error", {"message": f"Quote unavailable for {symbol}"}, to=sid)
 
 
 @sio.event

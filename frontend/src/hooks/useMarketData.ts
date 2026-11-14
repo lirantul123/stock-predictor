@@ -96,6 +96,7 @@ export function usePrediction(symbol: string | null, horizon: number = 5) {
     queryFn: () => marketApi.getPrediction(symbol!, horizon),
     enabled: !!symbol,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   })
 
   useEffect(() => {
@@ -216,9 +217,10 @@ export function useMarketData(symbol: string | null, timeframe: Timeframe['value
     history: history.data,
     indicators: indicators.data,
     prediction: prediction.data,
+    predictionError: prediction.isError ? prediction.error : null,
     isLoading: quote.isLoading || history.isLoading || indicators.isLoading || prediction.isLoading,
-    isError: quote.isError || history.isError || indicators.isError || prediction.isError,
-    error: quote.error || history.error || indicators.error || prediction.error,
+    isError: quote.isError || history.isError || indicators.isError,
+    error: quote.error || history.error || indicators.error,
     refetch: () => {
       quote.refetch()
       history.refetch()

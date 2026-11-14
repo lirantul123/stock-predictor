@@ -3,6 +3,7 @@ import type { PredictionResult } from '@/types'
 
 interface SignalGaugeProps {
   prediction: PredictionResult | null
+  unavailable?: boolean
   className?: string
 }
 
@@ -14,8 +15,22 @@ const signalConfig: Record<string, { label: string; color: string; icon: string 
   strong_sell: { label: 'Strong Sell', color: 'text-red-400', icon: 'M6 18L18 6M6 6l12 12' },
 }
 
-export function SignalGauge({ prediction, className }: SignalGaugeProps) {
+export function SignalGauge({ prediction, unavailable = false, className }: SignalGaugeProps) {
   if (!prediction) {
+    if (unavailable) {
+      return (
+        <div className={cn('rounded-2xl glass-panel p-6 text-center', className)}>
+          <div className="h-32 w-32 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
+            <svg className="h-10 w-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <p className="text-sm text-slate-300 font-medium">No trained model</p>
+          <p className="text-xs text-slate-500 mt-1">Train this symbol to enable ML predictions.</p>
+        </div>
+      )
+    }
+
     return (
       <div className={cn('rounded-2xl glass-panel p-6 text-center', className)}>
         <div className="h-32 w-32 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-4">

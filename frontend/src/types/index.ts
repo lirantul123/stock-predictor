@@ -23,13 +23,13 @@ export interface Quote {
 export interface SymbolSearchResult {
   symbol: string
   name: string
-  type: string
-  region: string
-  marketOpen: string
-  marketClose: string
-  timezone: string
-  currency: string
-  matchScore: string
+  type?: string | null
+  region?: string | null
+  marketOpen?: string | null
+  marketClose?: string | null
+  timezone?: string | null
+  currency?: string
+  matchScore?: number | null
 }
 
 export interface TechnicalIndicators {
@@ -73,7 +73,7 @@ export interface PredictionResult {
 export interface WatchlistItem {
   symbol: string
   name: string
-  addedAt: number
+  addedAt: number | string
 }
 
 export interface Timeframe {

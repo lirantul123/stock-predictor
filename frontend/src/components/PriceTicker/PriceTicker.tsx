@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/utils/helpers'
 import { useWatchlistStore } from '@/stores'
-import { useMarketData } from '@/hooks/useMarketData'
+import { marketApi } from '@/services/api'
 import { formatPrice, formatChange } from '@/utils/helpers'
-import type { Timeframe } from '@/types'
 
 interface PriceTickerProps {
   className?: string
@@ -37,7 +37,12 @@ export function PriceTicker({ className }: PriceTickerProps) {
 }
 
 function TickerItem({ symbol }: { symbol: string }) {
-  const { quote, isLoading } = useMarketData(symbol, '1D' as Timeframe['value'])
+  const { data: quote, isLoading } = useQuery({
+    queryKey: ['quote', symbol],
+    queryFn: () => marketApi.getQuote(symbol),
+    staleTime: 5000,
+    refetchInterval: 10000,
+  })
 
   if (isLoading || !quote) {
     return (

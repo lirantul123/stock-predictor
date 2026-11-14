@@ -4,6 +4,7 @@ import { formatPrice } from '@/utils/helpers'
 
 interface PredictionPanelProps {
   prediction: PredictionResult | null
+  unavailable?: boolean
   className?: string
 }
 
@@ -30,8 +31,19 @@ function getAgreementLabel(agreement: string) {
   return labels[agreement] ?? agreement
 }
 
-export function PredictionPanel({ prediction, className }: PredictionPanelProps) {
+export function PredictionPanel({ prediction, unavailable = false, className }: PredictionPanelProps) {
   if (!prediction) {
+    if (unavailable) {
+      return (
+        <div className={cn('rounded-2xl bg-slate-900/50 border border-slate-800 p-5 text-center', className)}>
+          <p className="text-sm text-slate-300 font-medium">No trained model for this symbol</p>
+          <p className="text-xs text-slate-500 mt-2">
+            Technical analysis is still available. Train a model to see the LSTM forecast.
+          </p>
+        </div>
+      )
+    }
+
     return (
       <div className={cn('flex flex-col items-center justify-center py-12', className)}>
         <div className="h-10 w-10 rounded-full bg-slate-800/50 flex items-center justify-center mb-3">

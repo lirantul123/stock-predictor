@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     build:
@@ -28,7 +26,7 @@ services:
       - ./backend:/app
       - ./ml-artifacts:/app/ml-artifacts
     environment:
-      - DATABASE_URL=sqlite:///./stock_predictor.db
+      - DATABASE_URL=sqlite+aiosqlite:///./stock_predictor.db
       - REDIS_URL=redis://redis:6379/0
       - MARKET_DATA_PROVIDER=${MARKET_DATA_PROVIDER:-yfinance}
       - MARKET_DATA_TIMEOUT_SECONDS=${MARKET_DATA_TIMEOUT_SECONDS:-30}
