@@ -253,19 +253,19 @@
    Components use hardcoded slate-* classes (no dark: variants), so we flip them
    here when <html> has .light. */
 @layer utilities {
-  /* Chart watermark — deliberately faint so it reads as a background mark,
-     but still clearly legible on both themes. */
+  /* Chart watermark — a faint background mark, matching the original
+     built-in watermark treatment (barely-there, never competing with data). */
   .chart-watermark-symbol {
-    color: rgba(148, 163, 184, 0.34);
+    color: rgba(148, 163, 184, 0.07);
   }
   .chart-watermark-tag {
-    color: rgba(148, 163, 184, 0.52);
+    color: rgba(148, 163, 184, 0.1);
   }
   .light .chart-watermark-symbol {
-    color: rgba(71, 85, 105, 0.3);
+    color: rgba(71, 85, 105, 0.07);
   }
   .light .chart-watermark-tag {
-    color: rgba(71, 85, 105, 0.48);
+    color: rgba(71, 85, 105, 0.1);
   }
 
   .light .bg-slate-950 { background-color: #f8fafc; }
