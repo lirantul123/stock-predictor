@@ -38,6 +38,14 @@ export function Dashboard() {
   const isUp = (quote?.change ?? 0) >= 0
   const bothSections = indicatorPanelOpen && predictionPanelOpen
 
+  const lastPrediction = prediction?.predictions?.[prediction.predictions.length - 1]
+  const targetPrice = lastPrediction ? formatPrice(lastPrediction.predictedClose) : '—'
+  const targetUp = (lastPrediction?.predictedClose ?? 0) >= (prediction?.currentPrice ?? 0)
+  const targetDeltaPct = lastPrediction && prediction
+    ? ((lastPrediction.predictedClose - prediction.currentPrice) / prediction.currentPrice) * 100
+    : 0
+  const targetDelta = `${targetDeltaPct >= 0 ? '+' : ''}${targetDeltaPct.toFixed(1)}%`
+
   return (
     <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-950">
       <div className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md">
@@ -161,30 +169,42 @@ export function Dashboard() {
                 </button>
               }
             >
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2.5">
-                  <div>
-                    <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">Current Price</p>
-                    <p className="font-mono text-base font-bold leading-tight text-slate-100">
-                      {quote ? formatPrice(quote.price) : '—'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[9px] font-medium uppercase tracking-wider text-slate-500">Target</p>
-                    <p className={cn(
-                      'font-mono text-base font-bold leading-tight',
-                      (prediction?.predictions?.[prediction.predictions.length - 1]?.predictedClose ?? 0) >= (prediction?.currentPrice ?? 0)
-                        ? 'text-green-400'
-                        : 'text-red-400',
-                    )}>
-                      {prediction?.predictions?.length
-                        ? formatPrice(prediction.predictions[prediction.predictions.length - 1].predictedClose)
-                        : '—'}
-                    </p>
-                  </div>
+              <div className="space-y-3">
+                {/* Controls */}
+                <div className="rounded-xl border border-slate-800/70 bg-slate-950/50 px-3 py-2">
+                  <MLControls horizon={predictionHorizon} onHorizonChange={setPredictionHorizon} />
                 </div>
 
-                <MLControls horizon={predictionHorizon} onHorizonChange={setPredictionHorizon} />
+                {/* Headline: current -> target */}
+                <div className="rounded-xl border border-slate-800/70 bg-gradient-to-br from-slate-900/70 to-slate-950/40 p-4">
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Current</p>
+                      <p className="font-mono text-2xl font-bold leading-tight text-slate-100">
+                        {quote ? formatPrice(quote.price) : '—'}
+                      </p>
+                    </div>
+
+                    <svg className="mb-2 h-4 w-4 shrink-0 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+
+                    <div className="text-right">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+                        Target · {prediction?.horizon ?? `${predictionHorizon}d`}
+                      </p>
+                      <p className={cn(
+                        'font-mono text-2xl font-bold leading-tight',
+                        targetUp ? 'text-green-400' : 'text-red-400',
+                      )}>
+                        {targetPrice}
+                      </p>
+                      <p className={cn('font-mono text-[11px] font-semibold', targetUp ? 'text-green-500/80' : 'text-red-500/80')}>
+                        {targetDelta}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <SignalGauge prediction={prediction ?? null} unavailable={!!predictionError} />
                 <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} />

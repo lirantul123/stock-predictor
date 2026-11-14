@@ -35,61 +35,57 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
     )
   }
 
-  const lastPred = prediction.predictions[prediction.predictions.length - 1]
-  const changePct = lastPred ? ((lastPred.predictedClose - prediction.currentPrice) / prediction.currentPrice) * 100 : 0
-  const isUp = changePct >= 0
-
   return (
-    <div className={cn('space-y-3', className)}>
-      {/* Forecast header */}
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            {prediction.horizon}-Day Forecast
-          </h3>
-          <p className="mt-0.5 text-[11px] text-slate-500">Per-day close, range and confidence</p>
-        </div>
-        <div className="text-right">
-          <p className="text-[9px] uppercase tracking-wider text-slate-500">Target</p>
-          <p className={cn('font-mono text-sm font-bold leading-tight', isUp ? 'text-green-400' : 'text-red-400')}>
-            {formatPrice(lastPred?.predictedClose ?? prediction.currentPrice)}
-          </p>
-          <p className={cn('font-mono text-[10px]', isUp ? 'text-green-500/80' : 'text-red-500/80')}>
-            {changePct >= 0 ? '+' : ''}{changePct.toFixed(1)}%
-          </p>
-        </div>
+    <div className={cn('space-y-2', className)}>
+      <div className="flex items-center justify-between">
+        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Day-by-Day Forecast
+        </h3>
+        <span className="font-mono text-[10px] text-slate-600">
+          {prediction.predictions.length} days
+        </span>
       </div>
 
-      {/* Forecast rows */}
-      <div className="space-y-1.5">
+      {/* Column labels */}
+      <div className="flex items-center gap-2 px-2.5 pb-1 text-[9px] font-medium uppercase tracking-wider text-slate-600">
+        <span className="w-6 shrink-0">#</span>
+        <span className="w-14 shrink-0">Date</span>
+        <span className="flex-1 text-right">Range</span>
+        <span className="w-16 shrink-0 text-right">Close</span>
+        <span className="w-10 shrink-0 text-right">Conf</span>
+        <span className="w-5 shrink-0" />
+      </div>
+
+      <div className="space-y-1">
         {prediction.predictions.map((p, i) => {
           const dirTone = p.direction === 'up' ? 'positive' : p.direction === 'down' ? 'negative' : 'neutral'
           const arrow = p.direction === 'up' ? '▲' : p.direction === 'down' ? '▼' : '●'
+          const isLast = i === prediction.predictions.length - 1
           return (
             <div
               key={i}
-              className="flex items-center gap-2.5 rounded-lg border border-slate-800/60 bg-slate-950/40 px-2.5 py-2 transition-colors hover:border-slate-700/70 hover:bg-slate-900/50"
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors',
+                isLast
+                  ? 'border-primary-500/40 bg-primary-500/[0.07]'
+                  : 'border-slate-800/60 bg-slate-950/40 hover:border-slate-700/70 hover:bg-slate-900/50',
+              )}
             >
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-800/70 font-mono text-[10px] font-bold text-slate-400">
+              <span className="w-6 shrink-0 font-mono text-[10px] font-bold text-slate-500">
                 D{i + 1}
-              </div>
-
+              </span>
               <span className="w-14 shrink-0 text-[11px] font-medium text-slate-400">
                 {new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
-
               <span className="flex-1 truncate text-right font-mono text-[10px] text-slate-500">
                 {formatPrice(p.lowerBound)} – {formatPrice(p.upperBound)}
               </span>
-
               <span className="w-16 shrink-0 text-right font-mono text-xs font-bold text-slate-100">
                 {formatPrice(p.predictedClose)}
               </span>
-
               <span className={cn('w-10 shrink-0 text-right font-mono text-[10px]', toneText(dirTone))}>
                 {Math.round(p.confidence * 100)}%
               </span>
-
               <span
                 aria-label={p.direction}
                 className={cn(
@@ -106,9 +102,9 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
         })}
       </div>
 
-      <p className="text-[10px] leading-relaxed text-slate-600">
+      <p className="pt-1 text-[10px] leading-relaxed text-slate-600">
         <span className="font-semibold text-slate-500">Disclaimer:</span> Forecasts are informational only and are not
-        financial advice. Past performance does not guarantee future results.
+        financial advice.
       </p>
     </div>
   )
