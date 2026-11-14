@@ -95,7 +95,7 @@ export function Dashboard() {
                   onClick={() => setChartType(type.value)}
                   aria-pressed={chartType === type.value}
                   className={cn(
-                    'rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors',
+                    'min-h-8 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors',
                     chartType === type.value
                       ? 'bg-primary-600 text-white'
                       : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100',
@@ -107,7 +107,7 @@ export function Dashboard() {
               <div className="mx-1 h-4 w-px bg-slate-700" />
               <button
                 onClick={() => chartApi?.timeScale().fitContent()}
-                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+                className="min-h-8 rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
                 title="Fit all data"
                 aria-label="Fit chart"
               >
@@ -118,7 +118,7 @@ export function Dashboard() {
             </div>
           </header>
 
-          <div className="relative h-[clamp(340px,52vh,620px)]">
+          <div className="relative h-[clamp(300px,44vh,620px)] sm:h-[clamp(340px,52vh,620px)]">
             <Chart
               data={history ?? []}
               symbol={currentSymbol}

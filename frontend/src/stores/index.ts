@@ -126,7 +126,7 @@ export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
       settings: defaultSettings,
-      sidebarOpen: true,
+      sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,
       settingsOpen: false,
       indicatorPanelOpen: true,
       predictionPanelOpen: true,

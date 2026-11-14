@@ -59,7 +59,7 @@ export function MLControls({ horizon, onHorizonChange, className }: MLControlsPr
               onClick={() => onHorizonChange(d)}
               aria-pressed={horizon === d}
               className={cn(
-                'rounded-md px-2 py-1 font-mono text-[11px] font-medium transition-colors',
+                'min-h-8 rounded-md px-2 py-1.5 font-mono text-[11px] font-medium transition-colors',
                 horizon === d
                   ? 'bg-primary-600 text-white'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100',
@@ -84,7 +84,7 @@ export function MLControls({ horizon, onHorizonChange, className }: MLControlsPr
           min={today}
           max={maxDate}
           onChange={(e) => handleDate(e.target.value)}
-          className="rounded-lg border border-slate-700/70 bg-slate-950/60 px-2 py-1 font-mono text-[11px] text-slate-300 outline-none transition-colors [color-scheme:dark] focus:border-primary-500/60"
+          className="min-h-8 rounded-lg border border-slate-700/70 bg-slate-950/60 px-2 py-1.5 font-mono text-[11px] text-slate-300 outline-none transition-colors [color-scheme:dark] focus:border-primary-500/60"
         />
       </div>
 

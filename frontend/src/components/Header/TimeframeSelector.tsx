@@ -32,7 +32,7 @@ export function TimeframeSelector({ className }: TimeframeSelectorProps) {
           onClick={() => setSelectedTimeframe(tf.value)}
           aria-pressed={selectedTimeframe === tf.value}
           className={cn(
-            'shrink-0 rounded-md px-1.5 py-1 text-[11px] font-medium transition-all duration-200 sm:px-2.5 sm:py-1.5 sm:text-xs',
+            'min-h-8 shrink-0 rounded-md px-2 py-1.5 text-[11px] font-medium transition-all duration-200 sm:px-2.5 sm:py-1.5 sm:text-xs',
             selectedTimeframe === tf.value
               ? 'bg-primary-600 text-white shadow-sm'
               : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100',
