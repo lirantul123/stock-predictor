@@ -19,7 +19,7 @@ router = APIRouter(prefix="/predictions", tags=["predictions"])
 @router.get("/{symbol}", response_model=PredictionResponse)
 async def get_prediction(
     symbol: str,
-    horizon: int = Query(5, ge=1, le=10),
+    horizon: int = Query(5, ge=1, le=30),
     db: AsyncSession = Depends(get_db),
 ):
     symbol = symbol.upper()

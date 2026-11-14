@@ -177,7 +177,7 @@ export function Dashboard() {
 
                 {/* Headline: current -> target */}
                 <div className="rounded-xl border border-slate-800/70 bg-gradient-to-br from-slate-900/70 to-slate-950/40 p-4">
-                  <div className="flex items-end justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Current</p>
                       <p className="font-mono text-2xl font-bold leading-tight text-slate-100">
@@ -185,7 +185,7 @@ export function Dashboard() {
                       </p>
                     </div>
 
-                    <svg className="mb-2 h-4 w-4 shrink-0 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="mt-6 h-4 w-4 shrink-0 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
 

@@ -70,16 +70,9 @@ export function SignalGauge({ prediction, unavailable = false, className }: Sign
         </div>
       </div>
 
-      <div className="space-y-1.5 border-t border-slate-800/60 pt-3">
-        <h4 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Components</h4>
-        <div className="grid grid-cols-2 gap-2">
-          <BreakdownItem label="ML Model" value={prediction.mlSignal} />
-          <BreakdownItem label="Technical" value={prediction.technicalSignal} />
-        </div>
-        <div className="flex items-center justify-between pt-0.5 text-[10px]">
-          <span className="text-slate-500">Model version</span>
-          <span className="truncate pl-2 font-mono text-slate-400">{prediction.modelVersion}</span>
-        </div>
+      <div className="flex items-center justify-between border-t border-slate-800/60 pt-2.5 text-[10px]">
+        <span className="text-slate-500">Model</span>
+        <span className="truncate pl-2 font-mono text-slate-400">{prediction.modelVersion}</span>
       </div>
     </div>
   )
@@ -90,16 +83,6 @@ function GaugeStat({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg border border-slate-800/70 bg-slate-950/40 p-2">
       <p className="mb-0.5 text-[9px] uppercase tracking-wider text-slate-500">{label}</p>
       <p className="truncate font-mono text-[11px] font-bold capitalize text-slate-100">{value}</p>
-    </div>
-  )
-}
-
-function BreakdownItem({ label, value }: { label: string; value: string }) {
-  const tone = signalTone(value)
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-800/70 bg-slate-950/40 px-2 py-1.5">
-      <span className="text-[10px] text-slate-500">{label}</span>
-      <span className={cn('text-[10px] font-bold font-mono capitalize', toneText(tone))}>{value}</span>
     </div>
   )
 }

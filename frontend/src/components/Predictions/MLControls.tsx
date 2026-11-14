@@ -7,9 +7,9 @@ interface MLControlsProps {
   className?: string
 }
 
-const PRESETS = [1, 3, 5, 10] as const
+const PRESETS = [1, 5, 10, 30] as const
 const MIN_HORIZON = 1
-const MAX_HORIZON = 10
+const MAX_HORIZON = 30
 
 function toISODate(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -38,7 +38,7 @@ export function MLControls({ horizon, onHorizonChange, className }: MLControlsPr
   const today = useMemo(() => toISODate(new Date()), [])
   const maxDate = useMemo(() => {
     const d = new Date()
-    d.setDate(d.getDate() + 30)
+    d.setDate(d.getDate() + 60)
     return toISODate(d)
   }, [])
 
