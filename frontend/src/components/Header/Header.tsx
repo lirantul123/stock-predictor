@@ -1,4 +1,3 @@
-import { SymbolSelector } from './SymbolSelector'
 import { TimeframeSelector } from './TimeframeSelector'
 import { cn } from '../../utils/helpers'
 import { useUIStore } from '../../stores'
@@ -39,10 +38,7 @@ export function Header() {
             </div>
           </div>
 
-          {/* Symbol search */}
-          <div className="flex items-center gap-3 flex-1 max-w-2xl mx-8">
-            <SymbolSelector />
-          </div>
+          <div className="flex-1" />
 
           {/* Actions + user */}
           <div className="flex items-center gap-2">

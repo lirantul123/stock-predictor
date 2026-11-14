@@ -221,9 +221,9 @@ export function Chart({
       },
       watermark: {
         visible: !!symbol,
-        text: symbol ?? '',
-        color: 'rgba(148, 163, 184, 0.06)',
-        fontSize: 52,
+        text: symbol ? `${symbol}\nmade by Liran` : '',
+        color: 'rgba(148, 163, 184, 0.07)',
+        fontSize: 48,
         horzAlign: 'center',
         vertAlign: 'center',
       },

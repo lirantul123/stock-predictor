@@ -96,46 +96,60 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
         </div>
       </div>
 
-      {/* Forecast table */}
+      {/* Forecast */}
       <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-5">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">
-          {prediction.horizon}-Day Forecast
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-800/50">
-                <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Date</th>
-                <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Predicted</th>
-                <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Range</th>
-                <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Confidence</th>
-                <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Direction</th>
-              </tr>
-            </thead>
-            <tbody>
-              {prediction.predictions.map((p, i) => (
-                <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                  <td className="py-3 px-4 text-sm font-mono text-slate-300">{new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                  <td className="py-3 px-4 text-sm font-mono font-medium text-slate-100 text-right">{formatPrice(p.predictedClose)}</td>
-                  <td className="py-3 px-4 text-sm font-mono text-slate-400 text-right">{formatPrice(p.lowerBound)} - {formatPrice(p.upperBound)}</td>
-                  <td className="py-3 px-4 text-sm font-mono text-slate-400 text-right">{Math.round(p.confidence * 100)}%</td>
-                  <td className="py-3 px-4 text-sm text-right">
-                    <span className={cn(
-                      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium',
-                      p.direction === 'up' && 'bg-green-500/15 text-green-400 border border-green-500/30',
-                      p.direction === 'down' && 'bg-red-500/15 text-red-400 border border-red-500/30',
-                      p.direction === 'flat' && 'bg-slate-800 text-slate-400 border border-slate-600/50'
-                    )}>
-                      {p.direction === 'up' && '▲'}
-                      {p.direction === 'down' && '▼'}
-                      {p.direction === 'flat' && '●'}
-                      {p.direction.charAt(0).toUpperCase() + p.direction.slice(1)}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+              {prediction.horizon}-Day Forecast
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">{prediction.symbol} · LSTM price projection</p>
+          </div>
+          <span className="text-xs font-mono text-slate-500">
+            {prediction.predictions.length} steps
+          </span>
+        </div>
+        <div className="space-y-2">
+          {prediction.predictions.map((p, i) => {
+            const dirTone = p.direction === 'up' ? 'positive' : p.direction === 'down' ? 'negative' : 'neutral'
+            const arrow = p.direction === 'up' ? '▲' : p.direction === 'down' ? '▼' : '●'
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-xl border border-slate-800/50 bg-slate-800/30 px-3 py-2.5 hover:bg-slate-800/50 transition-colors"
+              >
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900/60 text-[11px] font-bold font-mono text-slate-400">
+                  D{i + 1}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium text-slate-300">
+                      {new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <span className="text-sm font-bold font-mono text-slate-100">{formatPrice(p.predictedClose)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 mt-0.5">
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {formatPrice(p.lowerBound)} – {formatPrice(p.upperBound)}
+                    </span>
+                    <span className={cn('text-[10px] font-mono', toneText(dirTone))}>
+                      {Math.round(p.confidence * 100)}% conf
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className={cn(
+                    'flex-shrink-0 inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-medium',
+                    dirTone === 'positive' && 'bg-green-500/15 text-green-400 border border-green-500/30',
+                    dirTone === 'negative' && 'bg-red-500/15 text-red-400 border border-red-500/30',
+                    dirTone === 'neutral' && 'bg-slate-800 text-slate-400 border border-slate-600/50'
+                  )}
+                >
+                  {arrow}
+                </span>
+              </div>
+            )
+          })}
         </div>
       </div>
 
