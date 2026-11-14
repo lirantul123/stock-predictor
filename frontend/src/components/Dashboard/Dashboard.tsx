@@ -1,4 +1,6 @@
+import { useState, useCallback } from 'react'
 import { Chart } from '../Chart/Chart'
+import { chartTypes, type ChartType } from '../Chart/chartTypes'
 import { IndicatorPanel } from '../Indicators/IndicatorPanel'
 import { PredictionPanel } from '../Predictions/PredictionPanel'
 import { SignalGauge } from '../SignalGauge/SignalGauge'
@@ -9,12 +11,19 @@ import { PriceTicker } from '../PriceTicker/PriceTicker'
 import { useMarketStore, useUIStore } from '../../stores'
 import { useMarketData, usePopularSymbols } from '../../hooks/useMarketData'
 import { cn } from '../../utils/helpers'
+import type { IChartApi } from 'lightweight-charts'
 
 export function Dashboard() {
   const { currentSymbol } = useMarketStore()
   const { selectedTimeframe, settings, indicatorPanelOpen, predictionPanelOpen, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
+  const [chartType, setChartType] = useState<ChartType>('candles')
+  const [chartApi, setChartApi] = useState<IChartApi | null>(null)
 
   const { quote, history, indicators, prediction, predictionError, isLoading, isError, error, refetch } = useMarketData(currentSymbol, selectedTimeframe)
+
+  const handleChartReady = useCallback((api: IChartApi | null) => {
+    setChartApi(api)
+  }, [])
 
   if (!currentSymbol) {
     return (
@@ -45,22 +54,57 @@ export function Dashboard() {
             indicatorPanelOpen && !predictionPanelOpen && 'lg:w-[70%]',
             !indicatorPanelOpen && predictionPanelOpen && 'lg:w-[70%]',
           )}>
-            <div className="flex-1 relative min-h-0">
-              <Chart
-                data={history ?? []}
-                symbol={currentSymbol}
-                predictions={settings.showPredictions ? prediction?.predictions ?? [] : []}
-                enabledIndicators={settings.enabledIndicators}
-                volume={settings.showVolume}
-                className="h-full"
-              />
-
-              {isLoading && history?.length === 0 && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 z-20">
-                  <div className="h-10 w-10 rounded-full border-4 border-primary-500/30 border-t-primary-500 animate-spin mb-3" />
-                  <p className="text-sm text-slate-400">Loading market data...</p>
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Chart toolbar — kept above the chart so it never overlaps the graph */}
+              <div className="flex-shrink-0 flex items-center justify-end px-3 py-1.5 border-b border-slate-800/50 bg-slate-950/60">
+                <div className="flex items-center gap-0.5 rounded-lg border border-slate-700/70 bg-slate-900/85 p-1">
+                  {chartTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => setChartType(type.value)}
+                      className={cn(
+                        'rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors',
+                        chartType === type.value
+                          ? 'bg-primary-600 text-white'
+                          : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                      )}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                  <div className="mx-1 h-4 w-px bg-slate-700" />
+                  <button
+                    onClick={() => chartApi?.timeScale().fitContent()}
+                    className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+                    title="Fit all data"
+                    aria-label="Fit chart"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V5a1 1 0 011-1h3m8 0h3a1 1 0 011 1v3m0 8v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3" />
+                    </svg>
+                  </button>
                 </div>
-              )}
+              </div>
+
+              <div className="flex-1 relative min-h-0">
+                <Chart
+                  data={history ?? []}
+                  symbol={currentSymbol}
+                  predictions={settings.showPredictions ? prediction?.predictions ?? [] : []}
+                  enabledIndicators={settings.enabledIndicators}
+                  volume={settings.showVolume}
+                  chartType={chartType}
+                  onReady={handleChartReady}
+                  className="h-full"
+                />
+
+                {isLoading && history?.length === 0 && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 z-20">
+                    <div className="h-10 w-10 rounded-full border-4 border-primary-500/30 border-t-primary-500 animate-spin mb-3" />
+                    <p className="text-sm text-slate-400">Loading market data...</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

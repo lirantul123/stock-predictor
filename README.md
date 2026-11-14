@@ -52,7 +52,45 @@ Train models so the ML predictions panel works for a symbol. A symbol without a
 trained model shows an **Untrained** badge in the watchlist and add-symbol modal;
 train it to enable LSTM forecasts.
 
-**All default symbols** (AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, AMD, TTWO):
+Any symbol available in the app's **Popular** list (or any Yahoo Finance ticker)
+can be trained. The default training set is:
+
+`AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, AMD, TTWO`
+
+**Popular symbols you can train** (symbol — company):
+
+| Technology & Semis | Communication & Media | Consumer | Financials | Healthcare | Other |
+|---|---|---|---|---|---|
+| AAPL — Apple Inc. | GOOGL — Alphabet Inc. | AMZN — Amazon.com, Inc. | JPM — JPMorgan Chase & Co. | JNJ — Johnson & Johnson | BA — Boeing Co. |
+| MSFT — Microsoft Corporation | META — Meta Platforms, Inc. | TSLA — Tesla, Inc. | V — Visa Inc. | LLY — Eli Lilly and Co. | CAT — Caterpillar Inc. |
+| NVDA — NVIDIA Corporation | NFLX — Netflix, Inc. | WMT — Walmart Inc. | MA — Mastercard Inc. | UNH — UnitedHealth Group Inc. | GE — General Electric Co. |
+| AMD — Advanced Micro Devices, Inc. | DIS — Walt Disney Co. | COST — Costco Wholesale Corp. | BAC — Bank of America Corp. | MRK — Merck & Co., Inc. | F — Ford Motor Co. |
+| INTC — Intel Corporation | SPOT — Spotify Technology S.A. | PG — Procter & Gamble Co. | GS — Goldman Sachs Group, Inc. | PFE — Pfizer Inc. | SBUX — Starbucks Corp. |
+| AVGO — Broadcom Inc. | TM — Toyota Motor Corp. | KO — Coca-Cola Co. | MS — Morgan Stanley | ABBV — AbbVie Inc. | MCD — McDonald's Corp. |
+| ORCL — Oracle Corporation | SONY — Sony Group Corp. | PEP — PepsiCo, Inc. | | TMO — Thermo Fisher Scientific Inc. | NKE — Nike, Inc. |
+| CRM — Salesforce, Inc. | SAP — SAP SE | HD — Home Depot, Inc. | | | LOW — Lowe's Companies, Inc. |
+| ADBE — Adobe Inc. | | XOM — Exxon Mobil Corp. | | | |
+| CSCO — Cisco Systems, Inc. | | CVX — Chevron Corp. | | | |
+| QCOM — Qualcomm Inc. | | BABA — Alibaba Group Holding Ltd. | | | |
+| TXN — Texas Instruments Inc. | | TSM — Taiwan Semiconductor Manufacturing Co. | | | |
+| AMAT — Applied Materials, Inc. | | NVO — Novo Nordisk A/S | | | |
+| MU — Micron Technology, Inc. | | | | | |
+| IBM — International Business Machines Corp. | | | | | |
+| DELL — Dell Technologies Inc. | | | | | |
+| SMCI — Super Micro Computer, Inc. | | | | | |
+| ARM — Arm Holdings plc | | | | | |
+| PLTR — Palantir Technologies Inc. | | | | | |
+| TTWO — Take-Two Interactive Software, Inc. | | | | | |
+| EA — Electronic Arts Inc. | | | | | |
+| RBLX — Roblox Corporation | | | | | |
+| UBER — Uber Technologies, Inc. | | | | | |
+| ABNB — Airbnb, Inc. | | | | | |
+| SHOP — Shopify Inc. | | | | | |
+| COIN — Coinbase Global, Inc. | | | | | |
+| HOOD — Robinhood Markets, Inc. | | | | | |
+| SOFI — SoFi Technologies, Inc. | | | | | |
+
+**Train all default symbols:**
 
 ```bash
 # Docker
@@ -62,7 +100,7 @@ docker-compose exec backend python scripts/train_models.py
 python scripts/train_models.py
 ```
 
-**Specific symbols only:**
+**Train specific symbols:**
 
 ```bash
 # Docker

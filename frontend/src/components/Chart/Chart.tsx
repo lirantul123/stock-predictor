@@ -18,8 +18,7 @@ import {
 import type { PricePoint, PredictionPoint } from '../../types'
 import { cn, formatTimestamp, formatVolume as formatVolumeLabel } from '../../utils/helpers'
 import { useUIStore } from '../../stores'
-
-type ChartType = 'candles' | 'line' | 'area'
+import type { ChartType } from './chartTypes'
 
 interface LegendData {
   time: number
@@ -38,13 +37,9 @@ interface ChartProps {
   volume?: boolean
   height?: number
   className?: string
+  chartType?: ChartType
+  onReady?: (api: IChartApi | null) => void
 }
-
-const chartTypes: { value: ChartType; label: string }[] = [
-  { value: 'candles', label: 'Candles' },
-  { value: 'line', label: 'Line' },
-  { value: 'area', label: 'Area' },
-]
 
 const EMPTY_INDICATORS: string[] = []
 
@@ -56,11 +51,12 @@ export function Chart({
   volume = true,
   height,
   className,
+  chartType = 'candles',
+  onReady,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const lastPriceLineRef = useRef<IPriceLine | null>(null)
-  const [chartType, setChartType] = useState<ChartType>('candles')
   const [legend, setLegend] = useState<LegendData | null>(null)
   const theme = useUIStore((s) => s.settings.theme)
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -235,6 +231,7 @@ export function Chart({
     } as DeepPartial<ChartOptions>)
 
     chartRef.current = chart
+    onReady?.(chart)
 
     if (height) chart.applyOptions({ height })
 
@@ -448,6 +445,7 @@ export function Chart({
       lastPriceLineRef.current = null
       chart.remove()
       chartRef.current = null
+      onReady?.(null)
     }
   }, [
     data,
@@ -458,6 +456,7 @@ export function Chart({
     height,
     chartType,
     isDark,
+    onReady,
     chartBg,
     chartText,
     chartGrid,
@@ -475,34 +474,6 @@ export function Chart({
   return (
     <div className={cn('relative w-full h-full', className)}>
       <div ref={containerRef} className="w-full h-full" style={height ? { height } : undefined} />
-
-      <div className="absolute top-20 right-3 z-10 flex items-center gap-0.5 rounded-lg border border-slate-700/70 bg-slate-900/85 p-1 backdrop-blur">
-        {chartTypes.map((type) => (
-          <button
-            key={type.value}
-            onClick={() => setChartType(type.value)}
-            className={cn(
-              'rounded-md px-2 py-1 text-[11px] font-medium transition-colors',
-              chartType === type.value
-                ? 'bg-primary-600 text-white'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
-            )}
-          >
-            {type.label}
-          </button>
-        ))}
-        <div className="mx-1 h-4 w-px bg-slate-700" />
-        <button
-          onClick={() => chartRef.current?.timeScale().fitContent()}
-          className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
-          title="Fit all data"
-          aria-label="Fit chart"
-        >
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V5a1 1 0 011-1h3m8 0h3a1 1 0 011 1v3m0 8v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3" />
-          </svg>
-        </button>
-      </div>
 
       {legend && (
         <div className="pointer-events-none absolute bottom-9 left-3 z-10 flex items-center gap-3 rounded-lg border border-slate-800/70 bg-slate-950/75 px-3 py-1.5 font-mono text-[11px] backdrop-blur">
