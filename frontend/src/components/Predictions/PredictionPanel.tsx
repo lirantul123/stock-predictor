@@ -1,6 +1,8 @@
 import { cn } from '@/utils/helpers'
 import type { PredictionResult } from '@/types'
 import { formatPrice } from '@/utils/helpers'
+import { StockHeader } from '../Common/StockHeader'
+import { toneBadge, toneText, signalTone, changeTone } from '../../utils/signal'
 
 interface PredictionPanelProps {
   prediction: PredictionResult | null
@@ -8,27 +10,12 @@ interface PredictionPanelProps {
   className?: string
 }
 
-type SignalEntry = { label: string; className: string; icon: string }
-
-function getSignalConfig(signal: PredictionResult['ensembleSignal']) {
-  const config: Record<string, SignalEntry> = {
-    strong_buy: { label: 'Strong Buy', className: 'bg-green-500/15 text-green-400 border-green-500/30', icon: 'M5 13l4 4L19 7' },
-    buy: { label: 'Buy', className: 'bg-green-500/15 text-green-400 border-green-500/30', icon: 'M5 13l4 4L19 7' },
-    hold: { label: 'Hold', className: 'bg-slate-700/50 text-slate-300 border-slate-600/50', icon: 'M9 16l-4-4l6-6l4 4l-6 6-4-4z' },
-    sell: { label: 'Sell', className: 'bg-red-500/15 text-red-400 border-red-500/30', icon: 'M6 18L18 6M6 6l12 12' },
-    strong_sell: { label: 'Strong Sell', className: 'bg-red-500/15 text-red-400 border-red-500/30', icon: 'M6 18L18 6M6 6l12 12' },
-  }
-  return config[signal] ?? config.hold
-}
-
-function getAgreementLabel(agreement: string) {
-  const labels: Record<string, string> = {
-    strong: 'Strong Agreement',
-    moderate: 'Moderate Agreement',
-    weak: 'Weak Agreement',
-    conflict: 'Conflicting Signals',
-  }
-  return labels[agreement] ?? agreement
+const signalLabel: Record<string, string> = {
+  strong_buy: 'Strong Buy',
+  buy: 'Buy',
+  hold: 'Hold',
+  sell: 'Sell',
+  strong_sell: 'Strong Sell',
 }
 
 export function PredictionPanel({ prediction, unavailable = false, className }: PredictionPanelProps) {
@@ -57,32 +44,26 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
     )
   }
 
-  const signalConfig = getSignalConfig(prediction.ensembleSignal)
+  const tone = signalTone(prediction.ensembleSignal)
+  const label = signalLabel[prediction.ensembleSignal] ?? 'Hold'
   const confidencePct = Math.round(prediction.confidence * 100)
   const lastPred = prediction.predictions[prediction.predictions.length - 1]
   const changePct = lastPred ? ((lastPred.predictedClose - prediction.currentPrice) / prediction.currentPrice) * 100 : 0
   const isUp = changePct >= 0
+  const changeToneVal = changeTone(changePct)
 
   return (
     <div className={cn('space-y-4', className)}>
       {/* Signal header */}
       <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-5">
+        <StockHeader symbol={prediction.symbol} price={prediction.currentPrice} className="mb-4" />
+
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Ensemble Signal</h3>
             <p className="text-xs text-slate-500">ML + Technical consensus</p>
           </div>
-          <span
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border',
-              signalConfig.className
-            )}
-          >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={signalConfig.icon} />
-            </svg>
-            {signalConfig.label}
-          </span>
+          <span className={toneBadge(tone)}>{label}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -92,7 +73,7 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
           </div>
           <div className="rounded-xl bg-slate-800/50 border border-slate-800/50 p-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Target ({prediction.horizon})</p>
-            <p className={cn('text-xl font-bold font-mono mt-1', isUp ? 'text-green-400' : 'text-red-400')}>
+            <p className={cn('text-xl font-bold font-mono mt-1', toneText(changeToneVal))}>
               {isUp ? '+' : ''}{changePct.toFixed(1)}%
             </p>
           </div>
@@ -109,9 +90,9 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
       <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-5">
         <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Signal Breakdown</h3>
         <div className="grid grid-cols-3 gap-3">
-          <BreakdownCard label="ML Model" value={prediction.mlSignal.charAt(0).toUpperCase() + prediction.mlSignal.slice(1)} signal={prediction.mlSignal} sub="LSTM Forecast" />
-          <BreakdownCard label="Technical" value={prediction.technicalSignal.charAt(0).toUpperCase() + prediction.technicalSignal.slice(1)} signal={prediction.technicalSignal} sub="Indicator Consensus" />
-          <BreakdownCard label="Agreement" value={getAgreementLabel(prediction.agreement)} signal={prediction.agreement} sub="Signal Alignment" />
+          <BreakdownCard label="ML Model" value={prediction.mlSignal} />
+          <BreakdownCard label="Technical" value={prediction.technicalSignal} />
+          <BreakdownCard label="Agreement" value={prediction.agreement} />
         </div>
       </div>
 
@@ -139,14 +120,12 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
                   <td className="py-3 px-4 text-sm font-mono text-slate-400 text-right">{formatPrice(p.lowerBound)} - {formatPrice(p.upperBound)}</td>
                   <td className="py-3 px-4 text-sm font-mono text-slate-400 text-right">{Math.round(p.confidence * 100)}%</td>
                   <td className="py-3 px-4 text-sm text-right">
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium',
-                        p.direction === 'up' && 'bg-green-500/15 text-green-400 border border-green-500/30',
-                        p.direction === 'down' && 'bg-red-500/15 text-red-400 border border-red-500/30',
-                        p.direction === 'flat' && 'bg-slate-800 text-slate-400 border border-slate-600/50'
-                      )}
-                    >
+                    <span className={cn(
+                      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium',
+                      p.direction === 'up' && 'bg-green-500/15 text-green-400 border border-green-500/30',
+                      p.direction === 'down' && 'bg-red-500/15 text-red-400 border border-red-500/30',
+                      p.direction === 'flat' && 'bg-slate-800 text-slate-400 border border-slate-600/50'
+                    )}>
                       {p.direction === 'up' && '▲'}
                       {p.direction === 'down' && '▼'}
                       {p.direction === 'flat' && '●'}
@@ -165,9 +144,6 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
         <p className="text-xs text-slate-500 leading-relaxed">
           <span className="font-semibold">Disclaimer:</span> Predictions are for informational purposes only and do not constitute financial advice. Past performance does not guarantee future results.
         </p>
-        <p className="text-[10px] text-slate-600 mt-1">
-          Generated: {new Date(prediction.generatedAt).toLocaleString()}
-        </p>
       </div>
     </div>
   )
@@ -182,29 +158,12 @@ function StatItem({ label, value }: { label: string; value: string }) {
   )
 }
 
-function BreakdownCard({
-  label,
-  value,
-  signal,
-  sub,
-}: {
-  label: string
-  value: string
-  signal: string
-  sub: string
-}) {
-  const color =
-    signal === 'buy' || signal === 'strong'
-      ? 'text-green-400 bg-green-500/15 border-green-500/30'
-      : signal === 'sell' || signal === 'conflict'
-        ? 'text-red-400 bg-red-500/15 border-red-500/30'
-        : 'text-slate-400 bg-slate-800/50 border-slate-600/50'
-
+function BreakdownCard({ label, value }: { label: string; value: string }) {
+  const tone = signalTone(value)
   return (
-    <div className="rounded-xl p-4 border">
+    <div className="rounded-xl p-4 border border-slate-800/50 bg-slate-800/30">
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{label}</p>
-      <p className={cn('text-sm font-bold font-mono', color)}>{value}</p>
-      <p className="text-[10px] text-slate-600 mt-2">{sub}</p>
+      <p className={cn('text-sm font-bold font-mono capitalize', toneText(tone))}>{value}</p>
     </div>
   )
 }

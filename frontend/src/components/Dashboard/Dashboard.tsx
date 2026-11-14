@@ -100,7 +100,7 @@ export function Dashboard() {
 
               <div className="p-4 space-y-5">
                 {predictionPanelOpen && <SignalGauge prediction={prediction ?? null} unavailable={!!predictionError} />}
-                <TechnicalSummary indicators={indicators ?? null} />
+                <TechnicalSummary indicators={indicators ?? null} symbol={currentSymbol} />
                 <KeyLevels history={history} indicators={indicators ?? null} />
                 {indicatorPanelOpen && <IndicatorPanel indicators={indicators ?? null} enabledIndicators={settings.enabledIndicators} />}
                 {predictionPanelOpen && <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} />}

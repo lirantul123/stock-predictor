@@ -362,18 +362,20 @@ class PredictionService:
 
         base_uncertainty = float(np.sqrt(max(metadata.get("best_val_loss", 0.0001), 1e-8)))
 
-        for i in range(min(horizon, 5)):
-            pred_return = pred[i]
+        model_steps = min(horizon, len(pred))
+
+        for i in range(model_steps):
+            pred_return = float(pred[i])
             pred_price = current_price * (1 + pred_return)
 
             uncertainty = base_uncertainty * (1 + i * 0.15)
             upper = pred_price * (1 + uncertainty)
             lower = pred_price * (1 - uncertainty)
             confidence = max(0.3, min(0.95, 1.0 - base_uncertainty * 10 - i * 0.02))
-            
-            pred_date = datetime.utcnow() + timedelta(days=i+1)
+
+            pred_date = datetime.utcnow() + timedelta(days=i + 1)
             direction = "up" if pred_return > 0.005 else ("down" if pred_return < -0.005 else "flat")
-            
+
             predictions.append({
                 "date": pred_date.strftime("%Y-%m-%d"),
                 "predicted_close": round(pred_price, 2),
@@ -382,8 +384,36 @@ class PredictionService:
                 "confidence": round(confidence, 2),
                 "direction": direction,
             })
-            
+
             current_price = pred_price
+
+        # Extrapolate beyond the model's native horizon using a damped continuation
+        # of the last predicted return, so horizons > 5 are still useful.
+        if horizon > model_steps:
+            last_return = float(pred[-1]) if model_steps > 0 else 0.0
+            damped_return = last_return
+            for i in range(model_steps, horizon):
+                damped_return *= 0.5
+                pred_price = current_price * (1 + damped_return)
+
+                uncertainty = base_uncertainty * (1 + i * 0.18)
+                upper = pred_price * (1 + uncertainty)
+                lower = pred_price * (1 - uncertainty)
+                confidence = max(0.2, min(0.95, 1.0 - base_uncertainty * 10 - i * 0.03))
+
+                pred_date = datetime.utcnow() + timedelta(days=i + 1)
+                direction = "up" if damped_return > 0.003 else ("down" if damped_return < -0.003 else "flat")
+
+                predictions.append({
+                    "date": pred_date.strftime("%Y-%m-%d"),
+                    "predicted_close": round(pred_price, 2),
+                    "upper_bound": round(upper, 2),
+                    "lower_bound": round(lower, 2),
+                    "confidence": round(confidence, 2),
+                    "direction": direction,
+                })
+
+                current_price = pred_price
         
         return {
             "predictions": predictions,

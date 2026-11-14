@@ -1,8 +1,10 @@
 import { cn } from '@/utils/helpers'
 import type { TechnicalIndicators } from '@/types'
+import { StockHeader } from '../Common/StockHeader'
 
 interface TechnicalSummaryProps {
   indicators: TechnicalIndicators | null
+  symbol?: string
   className?: string
 }
 
@@ -91,7 +93,7 @@ const stateColor: Record<CheckState, string> = {
   neutral: 'text-slate-300',
 }
 
-export function TechnicalSummary({ indicators, className }: TechnicalSummaryProps) {
+export function TechnicalSummary({ indicators, symbol, className }: TechnicalSummaryProps) {
   const checks = buildChecks(indicators)
 
   if (!indicators) {
@@ -119,9 +121,10 @@ export function TechnicalSummary({ indicators, className }: TechnicalSummaryProp
 
   return (
     <div className={cn('rounded-2xl glass-panel p-5', className)}>
+      {symbol && <StockHeader symbol={symbol} className="mb-3" />}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Technical Summary</h3>
-        <span className="text-xs font-semibold text-slate-200">{verdict}</span>
+        <span className={cn('text-xs font-semibold', verdict.includes('Bull') ? 'text-green-400' : verdict.includes('Bear') ? 'text-red-400' : 'text-slate-300')}>{verdict}</span>
       </div>
 
       <div className="relative h-2 rounded-full bg-gradient-to-r from-red-500/70 via-yellow-500/70 to-green-500/70">
