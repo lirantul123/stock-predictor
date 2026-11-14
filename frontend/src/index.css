@@ -239,6 +239,16 @@
   }
 }
 
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee-slow {
+  animation: marqueeScroll linear infinite;
+  will-change: transform;
+}
+
 /* Light theme overrides — remap slate-based surfaces to light equivalents.
    Components use hardcoded slate-* classes (no dark: variants), so we flip them
    here when <html> has .light. */

@@ -26,14 +26,13 @@ export function PriceTicker({ className }: PriceTickerProps) {
           className
         )}
       >
-        <span className="text-[11px] text-slate-500">
-          Add symbols to your watchlist to see live prices here
-        </span>
+        <span className="text-[11px] text-slate-500">No symbols in watchlist</span>
       </div>
     )
   }
 
   const loopSymbols = [...visibleSymbols, ...visibleSymbols]
+  const duration = Math.max(visibleSymbols.length * 8, 20)
 
   return (
     <div
@@ -44,7 +43,7 @@ export function PriceTicker({ className }: PriceTickerProps) {
     >
       <div
         className="flex w-max items-center animate-marquee-slow"
-        style={{ animationDuration: `${Math.max(visibleSymbols.length * 14, 30)}s` }}
+        style={{ animationDuration: `${duration}s` }}
       >
         {loopSymbols.map((symbol, index) => (
           <TickerItem key={`${symbol}-${index}`} symbol={symbol} />

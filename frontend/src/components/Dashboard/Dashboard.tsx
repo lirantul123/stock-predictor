@@ -6,18 +6,15 @@ import { TechnicalSummary } from '../Analysis/TechnicalSummary'
 import { KeyLevels } from '../Analysis/KeyLevels'
 import { MarketOverview } from '../MarketOverview/MarketOverview'
 import { PriceTicker } from '../PriceTicker/PriceTicker'
-import { SymbolIcon } from '../Common/SymbolIcon'
 import { useMarketStore, useUIStore } from '../../stores'
 import { useMarketData, usePopularSymbols } from '../../hooks/useMarketData'
-import { cn, formatPrice, formatChange, getChangeColor } from '../../utils/helpers'
+import { cn } from '../../utils/helpers'
 
 export function Dashboard() {
   const { currentSymbol } = useMarketStore()
   const { selectedTimeframe, settings, indicatorPanelOpen, predictionPanelOpen, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
 
   const { quote, history, indicators, prediction, predictionError, isLoading, isError, error, refetch } = useMarketData(currentSymbol, selectedTimeframe)
-
-  const changeColor = quote ? getChangeColor(quote.change) : 'neutral'
 
   if (!currentSymbol) {
     return (
@@ -48,30 +45,6 @@ export function Dashboard() {
             indicatorPanelOpen && !predictionPanelOpen && 'lg:w-[70%]',
             !indicatorPanelOpen && predictionPanelOpen && 'lg:w-[70%]',
           )}>
-            <div className="absolute top-0 left-0 right-0 p-4 pointer-events-none z-10">
-              <div className="max-w-6xl mx-auto flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <SymbolIcon symbol={currentSymbol} size="lg" />
-                  <div>
-                    <p className="text-sm font-semibold text-slate-100">{currentSymbol}</p>
-                    <p className="text-xs text-slate-500">{selectedTimeframe} · Real-time data</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 ml-4 border-l border-slate-800 pl-4">
-                  {quote && (
-                    <>
-                      <span className={cn('text-xl font-bold font-mono', changeColor === 'up' && 'text-green-400', changeColor === 'down' && 'text-red-400', changeColor === 'neutral' && 'text-slate-400')}>
-                        {formatPrice(quote.price)}
-                      </span>
-                      <span className={cn('text-sm font-mono', changeColor === 'up' && 'text-green-400', changeColor === 'down' && 'text-red-400', changeColor === 'neutral' && 'text-slate-400')}>
-                        {formatChange(quote.change, quote.changePercent)}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
             <div className="flex-1 relative min-h-0">
               <Chart
                 data={history ?? []}
@@ -81,42 +54,6 @@ export function Dashboard() {
                 volume={settings.showVolume}
                 className="h-full"
               />
-
-              {/* Panel reopen toggles — always visible so panels can be restored after closing */}
-              <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 rounded-lg border border-slate-700/70 bg-slate-900/85 p-1 backdrop-blur">
-                <button
-                  onClick={toggleIndicatorPanel}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors',
-                    indicatorPanelOpen
-                      ? 'bg-primary-600 text-white'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
-                  )}
-                  title={indicatorPanelOpen ? 'Hide indicators panel' : 'Show indicators panel'}
-                  aria-pressed={indicatorPanelOpen}
-                >
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  Indicators
-                </button>
-                <button
-                  onClick={togglePredictionPanel}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors',
-                    predictionPanelOpen
-                      ? 'bg-primary-600 text-white'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
-                  )}
-                  title={predictionPanelOpen ? 'Hide ML predictions panel' : 'Show ML predictions panel'}
-                  aria-pressed={predictionPanelOpen}
-                >
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.32-1.744-.848-2.426z" />
-                  </svg>
-                  ML
-                </button>
-              </div>
 
               {isLoading && history?.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 z-20">
@@ -198,9 +135,6 @@ function EmptyState() {
         </svg>
       </div>
       <h2 className="text-2xl font-bold text-slate-100 mb-2">Select a Symbol</h2>
-      <p className="text-slate-400 mb-6">
-        Use the search bar to find a stock, then view interactive charts, technical indicators, and ML-powered predictions.
-      </p>
       <div className="grid grid-cols-3 gap-2">
         {symbols.map((sym) => (
           <button

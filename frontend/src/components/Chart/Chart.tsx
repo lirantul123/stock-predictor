@@ -231,6 +231,7 @@ export function Chart({
         horzAlign: 'center',
         vertAlign: 'center',
       },
+      attributionLogo: false,
     } as DeepPartial<ChartOptions>)
 
     chartRef.current = chart

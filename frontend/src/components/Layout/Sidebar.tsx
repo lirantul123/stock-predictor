@@ -193,12 +193,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {/* Footer */}
           <div className="p-4 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-md">
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span>Live data feed</span>
-            </div>
-            <div className="mt-3 text-[10px] text-slate-600 leading-relaxed">
-              Data: Yahoo Finance · Charts: TradingView · ML: PyTorch LSTM
+            <div className="text-[10px] text-slate-600 leading-relaxed">
+              Data: Yahoo Finance ·{' '}
+              <a
+                href="https://www.tradingview.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-500 hover:text-primary-400 transition-colors"
+              >
+                Charts by TradingView
+              </a>{' '}
+              · ML: PyTorch LSTM
             </div>
           </div>
         </div>

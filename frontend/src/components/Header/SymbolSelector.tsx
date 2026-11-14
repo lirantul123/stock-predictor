@@ -76,11 +76,6 @@ export function SymbolSelector({ className }: SymbolSelectorProps) {
     }
   }
 
-  const handleClear = () => {
-    setCurrentSymbol('')
-    setQuery('')
-  }
-
   const getDisplayName = (symbol: SymbolSearchResult | { symbol: string; name: string }) => (
     <span className="flex items-center gap-2.5 min-w-0">
       <SymbolIcon symbol={symbol.symbol} size="sm" />
@@ -134,7 +129,7 @@ export function SymbolSelector({ className }: SymbolSelectorProps) {
             value={query}
             onChange={handleInputChange}
             onFocus={handleFocus}
-            placeholder="Search symbol (e.g., AAPL)..."
+            placeholder="Search..."
             className="w-full pl-10 pr-10 py-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all"
             autoComplete="off"
             spellCheck={false}
@@ -220,24 +215,6 @@ export function SymbolSelector({ className }: SymbolSelectorProps) {
           </div>
         )}
       </div>
-
-      {currentSymbol && (
-        <div className="mt-2 flex items-center gap-2">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-primary-500/20 text-primary-300 text-sm font-mono font-medium">
-            <SymbolIcon symbol={currentSymbol} size="sm" />
-            {currentSymbol}
-          </span>
-          <button
-            onClick={handleClear}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
-            aria-label="Clear selection"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      )}
     </div>
   )
 }
