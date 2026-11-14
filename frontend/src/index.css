@@ -253,6 +253,20 @@
    Components use hardcoded slate-* classes (no dark: variants), so we flip them
    here when <html> has .light. */
 @layer utilities {
+  /* Chart watermark — kept faint but visible in both themes. */
+  .chart-watermark-symbol {
+    color: rgba(148, 163, 184, 0.26);
+  }
+  .chart-watermark-tag {
+    color: rgba(148, 163, 184, 0.4);
+  }
+  .light .chart-watermark-symbol {
+    color: rgba(71, 85, 105, 0.22);
+  }
+  .light .chart-watermark-tag {
+    color: rgba(71, 85, 105, 0.38);
+  }
+
   .light .bg-slate-950 { background-color: #f8fafc; }
   .light .bg-slate-900 { background-color: #f1f5f9; }
   .light .bg-slate-900\/80 { background-color: rgba(241, 245, 249, 0.8); }
