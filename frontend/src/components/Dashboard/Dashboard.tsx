@@ -8,11 +8,13 @@ import { SignalGauge } from '../SignalGauge/SignalGauge'
 import { TechnicalSummary } from '../Analysis/TechnicalSummary'
 import { KeyLevels } from '../Analysis/KeyLevels'
 import { MarketOverview } from '../MarketOverview/MarketOverview'
+import { MarketHours, MarketStatusPill } from '../MarketStatus/MarketStatus'
 import { PriceTicker } from '../PriceTicker/PriceTicker'
 import { Section } from '../Common/Section'
 import { useMarketStore, useUIStore } from '../../stores'
 import { useMarketData, usePopularSymbols } from '../../hooks/useMarketData'
-import { cn, formatPrice, formatChange } from '../../utils/helpers'
+import { cn, currencyOf, formatPrice, formatChange } from '../../utils/helpers'
+import { describeMarket } from '../../utils/market'
 import type { IChartApi } from 'lightweight-charts'
 
 export function Dashboard() {
@@ -39,12 +41,25 @@ export function Dashboard() {
   const bothSections = indicatorPanelOpen && predictionPanelOpen
 
   const lastPrediction = prediction?.predictions?.[prediction.predictions.length - 1]
-  const targetPrice = lastPrediction ? formatPrice(lastPrediction.predictedClose) : '—'
+  const quoteCurrency = currencyOf(quote?.currency)
+  const targetPrice = lastPrediction ? formatPrice(lastPrediction.predictedClose, quoteCurrency) : '—'
   const targetUp = (lastPrediction?.predictedClose ?? 0) >= (prediction?.currentPrice ?? 0)
   const targetDeltaPct = lastPrediction && prediction
     ? ((lastPrediction.predictedClose - prediction.currentPrice) / prediction.currentPrice) * 100
     : 0
   const targetDelta = `${targetDeltaPct >= 0 ? '+' : ''}${targetDeltaPct.toFixed(1)}%`
+
+  const marketView = describeMarket(quote)
+  const lastTradeLabel = quote?.timestamp
+    ? new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(new Date(quote.timestamp))
+    : ''
 
   return (
     <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-950">
@@ -55,6 +70,8 @@ export function Dashboard() {
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4 px-3 py-4 sm:px-4 lg:px-6">
         {/* Market snapshot — compact, scannable */}
         <MarketOverview quote={quote} symbol={currentSymbol} />
+
+        <MarketHours quote={quote} />
 
         {/* Chart card — the primary focus */}
         <section
@@ -70,9 +87,9 @@ export function Dashboard() {
                     {selectedTimeframe}
                   </span>
                 </div>
-                <div className="mt-0.5 flex items-baseline gap-2">
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="font-mono text-xl font-bold leading-none text-slate-50">
-                    {quote ? formatPrice(quote.price) : '—'}
+                    {quote ? formatPrice(quote.price, quoteCurrency) : '—'}
                   </span>
                   {quote && (
                     <span
@@ -84,6 +101,7 @@ export function Dashboard() {
                       {formatChange(quote.change, quote.changePercent)}
                     </span>
                   )}
+                  <MarketStatusPill quote={quote} />
                 </div>
               </div>
             </div>
@@ -175,13 +193,37 @@ export function Dashboard() {
                   <MLControls horizon={predictionHorizon} onHorizonChange={setPredictionHorizon} />
                 </div>
 
+                {marketView && !marketView.open && (
+                  <div className="flex items-start gap-2 rounded-xl border border-yellow-500/25 bg-yellow-500/5 px-3 py-2">
+                    <svg
+                      className="mt-0.5 h-3.5 w-3.5 shrink-0 text-yellow-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <p className="text-[11px] leading-relaxed text-yellow-300/90">
+                      <span className="font-semibold">{marketView.label}.</span>{' '}
+                      {marketView.detail}. Forecasts start from the last close
+                      {lastTradeLabel ? ` (${lastTradeLabel})` : ''} and project forward over
+                      trading days only.
+                    </p>
+                  </div>
+                )}
+
                 {/* Headline: current -> target */}
                 <div className="rounded-xl border border-slate-800/70 bg-gradient-to-br from-slate-900/70 to-slate-950/40 p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Current</p>
                       <p className="font-mono text-2xl font-bold leading-tight text-slate-100">
-                        {quote ? formatPrice(quote.price) : '—'}
+                        {quote ? formatPrice(quote.price, quoteCurrency) : '—'}
                       </p>
                     </div>
 
@@ -207,7 +249,7 @@ export function Dashboard() {
                 </div>
 
                 <SignalGauge prediction={prediction ?? null} unavailable={!!predictionError} />
-                <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} />
+                <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} currency={quote?.currency} />
               </div>
             </Section>
           )}
@@ -233,7 +275,7 @@ export function Dashboard() {
             >
               <div className="space-y-4">
                 <TechnicalSummary indicators={indicators ?? null} symbol={currentSymbol} />
-                <KeyLevels history={history} indicators={indicators ?? null} />
+                <KeyLevels history={history} indicators={indicators ?? null} currency={quote?.currency} />
                 <IndicatorPanel indicators={indicators ?? null} enabledIndicators={settings.enabledIndicators} />
               </div>
             </Section>

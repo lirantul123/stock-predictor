@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/utils/helpers'
 import { useWatchlistStore } from '@/stores'
 import { marketApi } from '@/services/api'
-import { formatPrice, formatChange } from '@/utils/helpers'
+import { currencyOf, formatPrice, formatChange } from '@/utils/helpers'
 import { SymbolIcon } from '../Common/SymbolIcon'
 
 interface PriceTickerProps {
@@ -78,7 +78,7 @@ function TickerItem({ symbol }: { symbol: string }) {
     <div className="flex items-center gap-3 whitespace-nowrap px-2">
       <SymbolIcon symbol={symbol} size="sm" />
       <span className="font-mono font-medium text-slate-200">{symbol}</span>
-      <span className={cn('font-mono font-medium', color)}>{formatPrice(quote.price)}</span>
+      <span className={cn('font-mono font-medium', color)}>{formatPrice(quote.price, currencyOf(quote.currency))}</span>
       <span className={cn('text-xs font-medium', color)}>
         {formatChange(quote.change, quote.changePercent)}
       </span>

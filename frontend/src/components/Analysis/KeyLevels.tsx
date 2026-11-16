@@ -1,13 +1,15 @@
-import { cn, clamp, formatPrice, formatVolume } from '@/utils/helpers'
+import { cn, clamp, currencyOf, formatPrice, formatVolume } from '@/utils/helpers'
 import type { PricePoint, TechnicalIndicators } from '@/types'
 
 interface KeyLevelsProps {
   history: PricePoint[] | undefined
   indicators: TechnicalIndicators | null
+  currency?: string | null
   className?: string
 }
 
-export function KeyLevels({ history, indicators, className }: KeyLevelsProps) {
+export function KeyLevels({ history, indicators, currency, className }: KeyLevelsProps) {
+  const money = currencyOf(currency)
   if (!history || history.length < 2) {
     return (
       <div className={cn('rounded-xl border border-slate-800/70 bg-slate-950/40 p-4', className)}>
@@ -43,8 +45,8 @@ export function KeyLevels({ history, indicators, className }: KeyLevelsProps) {
 
       <div>
         <div className="flex items-center justify-between text-[11px] mb-2">
-          <span className="text-slate-500">Range Low <span className="text-slate-300 font-mono">{formatPrice(low52)}</span></span>
-          <span className="text-slate-500">Range High <span className="text-slate-300 font-mono">{formatPrice(high52)}</span></span>
+          <span className="text-slate-500">Range Low <span className="text-slate-300 font-mono">{formatPrice(low52, money)}</span></span>
+          <span className="text-slate-500">Range High <span className="text-slate-300 font-mono">{formatPrice(high52, money)}</span></span>
         </div>
         <div className="relative h-2 rounded-full bg-slate-800">
           <div
@@ -57,14 +59,14 @@ export function KeyLevels({ history, indicators, className }: KeyLevelsProps) {
           />
         </div>
         <div className="mt-1.5 flex justify-between text-[10px] text-slate-500">
-          <span>Last {formatPrice(current)}</span>
+          <span>Last {formatPrice(current, money)}</span>
           <span>{rangePosition.toFixed(0)}% of range</span>
         </div>
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-1.5">
-        <Stat label="Recent Low" value={formatPrice(low20)} />
-        <Stat label="Recent High" value={formatPrice(high20)} />
+        <Stat label="Recent Low" value={formatPrice(low20, money)} />
+        <Stat label="Recent High" value={formatPrice(high20, money)} />
         <Stat label="ATR (14)" value={atrPercent ? `${atrPercent.toFixed(2)}%` : '--'} />
         <Stat label="Avg Volume" value={formatVolume(averageVolume)} />
       </div>

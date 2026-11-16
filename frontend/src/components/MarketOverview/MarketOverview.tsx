@@ -1,4 +1,4 @@
-import { cn, formatPrice, formatVolume, formatChange } from '@/utils/helpers'
+import { cn, currencyOf, formatPrice, formatVolume, formatChange } from '@/utils/helpers'
 import type { Quote } from '@/types'
 
 interface MarketOverviewProps {
@@ -38,12 +38,13 @@ export function MarketOverview({ quote, symbol, name, className }: MarketOvervie
   }
 
   const isUp = quote.change >= 0
+  const currency = currencyOf(quote.currency)
 
   const metrics: Metric[] = [
     {
       key: 'price',
       label: 'Price',
-      value: formatPrice(quote.price),
+      value: formatPrice(quote.price, currency),
       hint: 'Last traded price for this session.',
       icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
       accent: 'primary',
@@ -60,7 +61,7 @@ export function MarketOverview({ quote, symbol, name, className }: MarketOvervie
     {
       key: 'range',
       label: 'Day Range',
-      value: `${formatPrice(quote.low)} – ${formatPrice(quote.high)}`,
+      value: `${formatPrice(quote.low, currency)} – ${formatPrice(quote.high, currency)}`,
       hint: 'Lowest and highest price reached today.',
       icon: 'M5 12h14M5 12l3-3m-3 3l3 3m9-3l-3-3m3 3l-3 3',
       accent: 'warning',

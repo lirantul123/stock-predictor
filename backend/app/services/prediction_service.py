@@ -11,6 +11,7 @@ import hashlib
 from datetime import datetime, timedelta
 from app.config import settings
 from app.services.indicator_engine import IndicatorEngine, IndicatorResult, get_technical_signal
+from app.services.market_hours import next_trading_days
 import structlog
 
 logger = structlog.get_logger()
@@ -364,6 +365,11 @@ class PredictionService:
 
         model_steps = min(horizon, len(pred))
 
+        # Forecasts land on trading days, not calendar days: a prediction dated
+        # Sunday would describe a session that never happens.
+        start_date = datetime.utcnow().date() + timedelta(days=1)
+        trading_days = next_trading_days(horizon, start_date)
+
         for i in range(model_steps):
             pred_return = float(pred[i])
             pred_price = current_price * (1 + pred_return)
@@ -373,7 +379,7 @@ class PredictionService:
             lower = pred_price * (1 - uncertainty)
             confidence = max(0.3, min(0.95, 1.0 - base_uncertainty * 10 - i * 0.02))
 
-            pred_date = datetime.utcnow() + timedelta(days=i + 1)
+            pred_date = trading_days[i] if i < len(trading_days) else trading_days[-1]
             direction = "up" if pred_return > 0.005 else ("down" if pred_return < -0.005 else "flat")
 
             predictions.append({
@@ -401,7 +407,7 @@ class PredictionService:
                 lower = pred_price * (1 - uncertainty)
                 confidence = max(0.2, min(0.95, 1.0 - base_uncertainty * 10 - i * 0.03))
 
-                pred_date = datetime.utcnow() + timedelta(days=i + 1)
+                pred_date = trading_days[i] if i < len(trading_days) else trading_days[-1]
                 direction = "up" if damped_return > 0.003 else ("down" if damped_return < -0.003 else "flat")
 
                 predictions.append({

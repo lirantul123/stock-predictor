@@ -6,12 +6,24 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number, currency = 'USD'): string {
+  // LSE quotes in pence (GBp); Intl would render them as pounds, off by 100x.
+  if (currency === 'GBp') return `${price.toFixed(2)}p`
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(price)
+}
+
+/**
+ * Normalise an exchange currency code for Intl.
+ * Providers report pence as "GBp" and some symbols carry no currency at all.
+ */
+export function currencyOf(currency?: string | null): string {
+  const code = (currency ?? '').trim()
+  if (code.length === 3) return code
+  return 'USD'
 }
 
 export function formatPriceCompact(price: number): string {

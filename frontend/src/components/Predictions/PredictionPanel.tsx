@@ -1,15 +1,18 @@
 import { cn } from '@/utils/helpers'
 import type { PredictionResult } from '@/types'
-import { formatPrice } from '@/utils/helpers'
+import { currencyOf, formatPrice } from '@/utils/helpers'
 import { toneText } from '../../utils/signal'
 
 interface PredictionPanelProps {
   prediction: PredictionResult | null
   unavailable?: boolean
+  currency?: string | null
   className?: string
 }
 
-export function PredictionPanel({ prediction, unavailable = false, className }: PredictionPanelProps) {
+export function PredictionPanel({ prediction, unavailable = false, currency, className }: PredictionPanelProps) {
+  const money = currencyOf(currency)
+
   if (!prediction) {
     if (unavailable) {
       return (
@@ -78,10 +81,10 @@ export function PredictionPanel({ prediction, unavailable = false, className }: 
                 {new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
               <span className="flex-1 truncate text-right font-mono text-[10px] text-slate-500">
-                {formatPrice(p.lowerBound)} – {formatPrice(p.upperBound)}
+                {formatPrice(p.lowerBound, money)} – {formatPrice(p.upperBound, money)}
               </span>
               <span className="w-16 shrink-0 text-right font-mono text-xs font-bold text-slate-100">
-                {formatPrice(p.predictedClose)}
+                {formatPrice(p.predictedClose, money)}
               </span>
               <span className={cn('w-10 shrink-0 text-right font-mono text-[10px]', toneText(dirTone))}>
                 {Math.round(p.confidence * 100)}%

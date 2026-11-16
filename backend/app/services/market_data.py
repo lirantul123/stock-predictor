@@ -7,6 +7,7 @@ import requests
 
 from app.config import settings
 from app.schemas import QuoteResponse, PricePoint, SymbolSearchResult
+from app.services.market_hours import market_session
 
 
 POPULAR_SYMBOLS = [
@@ -216,6 +217,8 @@ class YahooFinanceClient:
             change_percent = (change / previous_close * 100) if previous_close else 0.0
             timestamp = int(meta.get("regularMarketTime") or latest.timestamp) * 1000
 
+            session = market_session(meta)
+
             return QuoteResponse(
                 symbol=symbol,
                 price=latest.close,
@@ -227,6 +230,16 @@ class YahooFinanceClient:
                 open=float(meta.get("regularMarketOpen") or latest.open),
                 previous_close=round(previous_close, 2),
                 timestamp=timestamp,
+                exchange=session.exchange,
+                exchange_name=session.exchange_name,
+                currency=session.currency,
+                market_state=session.state,
+                market_is_open=session.is_open,
+                market_session_start=session.session_start,
+                market_session_end=session.session_end,
+                market_next_open=session.next_open,
+                market_timezone=session.timezone,
+                market_trading_day=session.trading_day,
             )
 
         return await self._run(fetch)

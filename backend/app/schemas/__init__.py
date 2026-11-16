@@ -114,6 +114,17 @@ class QuoteResponse(APIModel):
     open: float
     previous_close: float
     timestamp: int
+    # Exchange / market-session context (present when the provider exposes it)
+    exchange: Optional[str] = None
+    exchange_name: Optional[str] = None
+    currency: Optional[str] = None
+    market_state: Optional[str] = None
+    market_is_open: Optional[bool] = None
+    market_session_start: Optional[int] = None
+    market_session_end: Optional[int] = None
+    market_next_open: Optional[int] = None
+    market_timezone: Optional[str] = None
+    market_trading_day: Optional[str] = None
 
 
 # Price History

@@ -18,6 +18,16 @@ export interface Quote {
   open: number
   previousClose: number
   timestamp: number
+  exchange?: string | null
+  exchangeName?: string | null
+  currency?: string | null
+  marketState?: string | null
+  marketIsOpen?: boolean | null
+  marketSessionStart?: number | null
+  marketSessionEnd?: number | null
+  marketNextOpen?: number | null
+  marketTimezone?: string | null
+  marketTradingDay?: string | null
 }
 
 export interface SymbolSearchResult {
