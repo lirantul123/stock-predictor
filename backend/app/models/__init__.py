@@ -71,6 +71,12 @@ class Prediction(Base):
     predictions_json = Column(Text, nullable=False)  # JSON array of prediction points
     generated_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    # The last close the forecast was built from; used to score accuracy later.
+    baseline_price = Column(Float, nullable=True)
+    baseline_timestamp = Column(BigInteger, nullable=True, index=True)
+    # Optional user annotation: what they expected and why.
+    user_note = Column(Text, nullable=True)
+    user_expected_direction = Column(String(10), nullable=True)  # up, down, flat
 
     # Relationships
     symbol_obj = relationship("Symbol", back_populates="predictions")

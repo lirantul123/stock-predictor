@@ -3,6 +3,7 @@ import { Chart } from '../Chart/Chart'
 import { chartTypes, type ChartType } from '../Chart/chartTypes'
 import { IndicatorPanel } from '../Indicators/IndicatorPanel'
 import { PredictionPanel } from '../Predictions/PredictionPanel'
+import { PredictionHistory } from '../Predictions/PredictionHistory'
 import { MLControls } from '../Predictions/MLControls'
 import { SignalGauge } from '../SignalGauge/SignalGauge'
 import { TechnicalSummary } from '../Analysis/TechnicalSummary'
@@ -250,6 +251,13 @@ export function Dashboard() {
 
                 <SignalGauge prediction={prediction ?? null} unavailable={!!predictionError} />
                 <PredictionPanel prediction={prediction ?? null} unavailable={!!predictionError} currency={quote?.currency} />
+
+                <div className="mt-2">
+                  <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    Forecast history
+                  </h4>
+                  <PredictionHistory />
+                </div>
               </div>
             </Section>
           )}

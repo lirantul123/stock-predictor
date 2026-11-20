@@ -17,8 +17,12 @@ import {
 } from 'lightweight-charts'
 import type { PricePoint, PredictionPoint } from '../../types'
 import { cn, formatTimestamp, formatVolume as formatVolumeLabel } from '../../utils/helpers'
+import { userTimeZone } from '../../utils/market'
 import { useUIStore } from '../../stores'
 import type { ChartType } from './chartTypes'
+import { TrendlineToolbar } from './TrendlineToolbar'
+import { createTrendline } from './trendlines'
+import type { Trendline, TrendlineMode } from './trendlines'
 
 interface LegendData {
   time: number
@@ -39,9 +43,15 @@ interface ChartProps {
   className?: string
   chartType?: ChartType
   onReady?: (api: IChartApi | null) => void
+  /** Active drawing mode; 'none' disables drawing. */
+  drawingMode?: 'none' | TrendlineMode
+  /** User trendlines; toggled by the toolbar. */
+  trendlines?: Trendline[]
+  onTrendlinesChange?: (lines: Trendline[]) => void
 }
 
 const EMPTY_INDICATORS: string[] = []
+const EMPTY_LINES: Trendline[] = []
 
 export function Chart({
   data,
@@ -53,6 +63,9 @@ export function Chart({
   className,
   chartType = 'candles',
   onReady,
+  drawingMode = 'none',
+  trendlines = EMPTY_LINES,
+  onTrendlinesChange,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -202,6 +215,9 @@ export function Chart({
         rightOffset: 12,
         barSpacing: 8,
         minBarSpacing: 3,
+        // Show the axis in the viewer's local timezone instead of UTC, so
+        // "09:30" reads as 09:30 wherever they are.
+        timeZone: userTimeZone(),
       },
       crosshair: {
         mode: 1,
@@ -431,10 +447,58 @@ export function Chart({
       })
     }
 
-    const resizeObserver = new ResizeObserver(handleResize)
+const resizeObserver = new ResizeObserver(handleResize)
     resizeObserver.observe(containerRef.current)
 
-return () => {
+    // --- Drawing: click to place the first point, click again to finish ---
+    let activeDraw: { mode: TrendlineMode } | null = drawingMode !== 'none' ? { mode: drawingMode } : null
+    let pendingStart: { time: number; price: number } | null = null
+
+    const finishDraw = (time: number, price: number) => {
+      if (!activeDraw || !pendingStart) return
+      const line = createTrendline(
+        activeDraw.mode,
+        pendingStart.price,
+        price,
+        pendingStart.time,
+        time,
+      )
+      onTrendlinesChange?.([...trendlines, line])
+      pendingStart = null
+      activeDraw = null
+    }
+
+    const startDraw = (time: number, price: number) => {
+      if (!activeDraw) return
+      if (activeDraw.mode === 'horizontal' || activeDraw.mode === 'vertical') {
+        // One click is enough for a level line.
+        const line = createTrendline(
+          activeDraw.mode,
+          price,
+          price,
+          time,
+          time,
+        )
+        onTrendlinesChange?.([...trendlines, line])
+        return
+      }
+      pendingStart = { time, price }
+    }
+
+    chart.subscribeClick((param: MouseEventParams) => {
+      if (!activeDraw) return
+      if (!param.point || !param.time) return
+      const price = mainSeries?.coordinateToPrice(param.point.y)
+      if (price == null || !isFinite(price)) return
+      const time = Number(param.time) as UTCTimestamp
+      if (pendingStart) {
+        finishDraw(time, price)
+      } else {
+        startDraw(time, price)
+      }
+    })
+
+    return () => {
       cancelAnimationFrame(resizeFrame)
       resizeObserver.disconnect()
       lastPriceLineRef.current = null
@@ -446,11 +510,20 @@ return () => {
     // colours are derived values; including them would force the chart to
     // rebuild on every parent render, which is what caused the render loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, symbol, predictions, enabledIndicators, volume, height, chartType, isDark])
+  }, [data, symbol, predictions, enabledIndicators, volume, height, chartType, isDark, drawingMode, trendlines, onTrendlinesChange])
 
   return (
     <div className={cn('relative w-full h-full', className)}>
       <div ref={containerRef} className="w-full h-full" style={height ? { height } : undefined} />
+
+      {drawingMode !== 'none' && (
+        <TrendlineToolbar
+          mode={drawingMode}
+          onModeChange={() => onTrendlinesChange?.(trendlines)}
+          onClear={() => onTrendlinesChange?.([])}
+          className="absolute top-2 right-2 z-20"
+        />
+      )}
 
       {symbol && (
         <div className="pointer-events-none absolute inset-0 z-10 flex select-none items-center justify-center">
