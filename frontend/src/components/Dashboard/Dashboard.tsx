@@ -17,12 +17,16 @@ import { useMarketData, usePopularSymbols } from '../../hooks/useMarketData'
 import { cn, currencyOf, formatPrice, formatChange } from '../../utils/helpers'
 import { describeMarket } from '../../utils/market'
 import type { IChartApi } from 'lightweight-charts'
+import type { Trendline } from '../Chart/trendlines'
+import type { DrawingMode } from '../Chart/TrendlineToolbar'
 
 export function Dashboard() {
   const { currentSymbol } = useMarketStore()
   const { selectedTimeframe, settings, indicatorPanelOpen, predictionPanelOpen, predictionHorizon, setPredictionHorizon, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
   const [chartType, setChartType] = useState<ChartType>('candles')
   const [chartApi, setChartApi] = useState<IChartApi | null>(null)
+  const [trendlines, setTrendlines] = useState<Trendline[]>([])
+  const [drawingMode, setDrawingMode] = useState<DrawingMode>('none')
 
   const { quote, history, indicators, prediction, predictionError, isLoading, isError, error, refetch } = useMarketData(currentSymbol, selectedTimeframe)
 
@@ -134,6 +138,20 @@ export function Dashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V5a1 1 0 011-1h3m8 0h3a1 1 0 011 1v3m0 8v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3" />
                 </svg>
               </button>
+              <div className="mx-1 h-4 w-px bg-slate-700" />
+              <button
+                onClick={() => setDrawingMode(drawingMode === 'none' ? 'line' : 'none')}
+                className={cn(
+                  'min-h-8 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors',
+                  drawingMode !== 'none'
+                    ? 'bg-primary-600 text-white'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100',
+                )}
+                title="Draw lines on chart"
+                aria-label={drawingMode !== 'none' ? 'Stop drawing' : 'Start drawing'}
+              >
+                ✎
+              </button>
             </div>
           </header>
 
@@ -146,6 +164,10 @@ export function Dashboard() {
               volume={settings.showVolume}
               chartType={chartType}
               onReady={handleChartReady}
+              drawingMode={drawingMode}
+              trendlines={trendlines}
+              onTrendlinesChange={setTrendlines}
+              onDrawingModeChange={setDrawingMode}
               className="h-full"
             />
 

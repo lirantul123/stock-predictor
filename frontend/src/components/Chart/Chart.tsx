@@ -22,7 +22,8 @@ import { useUIStore } from '../../stores'
 import type { ChartType } from './chartTypes'
 import { TrendlineToolbar } from './TrendlineToolbar'
 import { createTrendline } from './trendlines'
-import type { Trendline, TrendlineMode } from './trendlines'
+import type { Trendline } from './trendlines'
+import type { DrawingMode } from './TrendlineToolbar'
 
 interface LegendData {
   time: number
@@ -44,10 +45,12 @@ interface ChartProps {
   chartType?: ChartType
   onReady?: (api: IChartApi | null) => void
   /** Active drawing mode; 'none' disables drawing. */
-  drawingMode?: 'none' | TrendlineMode
+  drawingMode?: DrawingMode
   /** User trendlines; toggled by the toolbar. */
   trendlines?: Trendline[]
   onTrendlinesChange?: (lines: Trendline[]) => void
+  /** Fired when the user picks a drawing mode from the toolbar. */
+  onDrawingModeChange?: (mode: DrawingMode) => void
 }
 
 const EMPTY_INDICATORS: string[] = []
@@ -66,11 +69,13 @@ export function Chart({
   drawingMode = 'none',
   trendlines = EMPTY_LINES,
   onTrendlinesChange,
+  onDrawingModeChange,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const lastPriceLineRef = useRef<IPriceLine | null>(null)
   const [legend, setLegend] = useState<LegendData | null>(null)
+  const [internalDrawingMode, setInternalDrawingMode] = useState<DrawingMode>(drawingMode as DrawingMode)
   const theme = useUIStore((s) => s.settings.theme)
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   const chartBg = isDark ? '#0f172a' : '#f8fafc'
@@ -451,13 +456,15 @@ const resizeObserver = new ResizeObserver(handleResize)
     resizeObserver.observe(containerRef.current)
 
     // --- Drawing: click to place the first point, click again to finish ---
-    let activeDraw: { mode: TrendlineMode } | null = drawingMode !== 'none' ? { mode: drawingMode } : null
+    let activeDraw: { mode: DrawingMode } | null = drawingMode !== 'none' ? { mode: drawingMode } : null
     let pendingStart: { time: number; price: number } | null = null
 
     const finishDraw = (time: number, price: number) => {
       if (!activeDraw || !pendingStart) return
+      const mode = activeDraw.mode
+      if (mode === 'erase' || mode === 'none') return
       const line = createTrendline(
-        activeDraw.mode,
+        mode,
         pendingStart.price,
         price,
         pendingStart.time,
@@ -469,7 +476,7 @@ const resizeObserver = new ResizeObserver(handleResize)
     }
 
     const startDraw = (time: number, price: number) => {
-      if (!activeDraw) return
+      if (!activeDraw || activeDraw.mode === 'erase') return
       if (activeDraw.mode === 'horizontal' || activeDraw.mode === 'vertical') {
         // One click is enough for a level line.
         const line = createTrendline(
@@ -510,7 +517,7 @@ const resizeObserver = new ResizeObserver(handleResize)
     // colours are derived values; including them would force the chart to
     // rebuild on every parent render, which is what caused the render loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, symbol, predictions, enabledIndicators, volume, height, chartType, isDark, drawingMode, trendlines, onTrendlinesChange])
+  }, [data, symbol, predictions, enabledIndicators, volume, height, chartType, isDark, drawingMode, trendlines, onTrendlinesChange, onDrawingModeChange])
 
   return (
     <div className={cn('relative w-full h-full', className)}>
@@ -518,8 +525,11 @@ const resizeObserver = new ResizeObserver(handleResize)
 
       {drawingMode !== 'none' && (
         <TrendlineToolbar
-          mode={drawingMode}
-          onModeChange={() => onTrendlinesChange?.(trendlines)}
+          mode={internalDrawingMode}
+          onModeChange={(m) => {
+            setInternalDrawingMode(m)
+            onDrawingModeChange?.(m)
+          }}
           onClear={() => onTrendlinesChange?.([])}
           className="absolute top-2 right-2 z-20"
         />
