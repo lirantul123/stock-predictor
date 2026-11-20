@@ -62,7 +62,11 @@ interface MarketHoursProps {
   className?: string
 }
 
-/** Regional trading hours, shown in both the exchange's zone and the viewer's. */
+/**
+ * Regional trading hours. Leads with the viewer's own clock — that is the time
+ * they actually care about — and keeps the exchange's session as secondary
+ * context beside it.
+ */
 export function MarketHours({ quote, className }: MarketHoursProps) {
   const view = describeMarket(quote)
   const state = marketStateOf(quote)
@@ -79,22 +83,19 @@ export function MarketHours({ quote, className }: MarketHoursProps) {
     region && region.toLowerCase() !== exchangeName.toLowerCase() ? region : ''
   const dateLabel = sessionDateLabel(quote)
   const sameZone = tz === localTz
+  const localRange = sameZone ? sessionRange(quote) : sessionRangeLocal(quote)
 
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-slate-800/70 bg-slate-900/40 px-3 py-2',
+        'flex flex-wrap items-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900/40 p-2',
         className,
       )}
     >
-      <div className="flex min-w-0 items-center gap-2">
-        <span
-          className={cn(
-            'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border',
-            view ? toneStyles[view.tone] : toneStyles.neutral,
-          )}
-        >
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Your clock — the headline */}
+      <div className="flex items-center gap-2.5 rounded-lg border border-primary-500/25 bg-primary-500/10 px-3 py-1.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-500/15 text-primary-300">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -104,48 +105,54 @@ export function MarketHours({ quote, className }: MarketHoursProps) {
           </svg>
         </span>
         <div className="min-w-0">
-          <p className="truncate text-[11px] font-semibold text-slate-200">
-            {exchangeName}
-            {regionSuffix ? <span className="font-normal text-slate-500"> · {regionSuffix}</span> : null}
+          <p className="text-[9px] font-bold uppercase tracking-widest text-primary-300/80">
+            Your time
           </p>
-          <p className="truncate text-[10px] text-slate-500">
-            {dateLabel ? `${dateLabel} · ` : ''}
-            {sessionRange(quote)}
-            {zone ? ` ${zone}` : ''}
+          <p className="whitespace-nowrap font-mono text-[15px] font-bold leading-tight text-slate-50">
+            {localRange}
           </p>
         </div>
+        <span className="ml-0.5 rounded-md bg-slate-950/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary-200">
+          {localZone || localTz}
+        </span>
       </div>
 
-      <div className="h-6 w-px shrink-0 bg-slate-800" />
-
-      <div className="min-w-0">
-        <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Your time</p>
-        <p className="truncate font-mono text-[11px] text-slate-300">
-          {sameZone ? sessionRange(quote) : sessionRangeLocal(quote)}
-          <span className="ml-1 text-slate-500">
-            {sameZone ? '' : localZone ? localZone : localTz}
-          </span>
+      {/* Exchange session — secondary context */}
+      <div className="min-w-0 flex-1 px-1">
+        <p className="truncate text-[11px] font-semibold text-slate-300">
+          {exchangeName}
+          {regionSuffix ? (
+            <span className="font-normal text-slate-500"> · {regionSuffix}</span>
+          ) : null}
+          {sameZone ? <span className="ml-1 text-[10px] text-slate-600">· same as yours</span> : null}
+        </p>
+        <p className="truncate text-[10px] text-slate-500">
+          {dateLabel ? `${dateLabel} · ` : ''}
+          {sessionRange(quote)}
+          {zone ? ` ${zone}` : ''}
         </p>
       </div>
 
+      {/* Status */}
       {view ? (
-        <>
-          <div className="h-6 w-px shrink-0 bg-slate-800" />
-          <div className="min-w-0">
-            <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Status</p>
-            <p
-              className={cn(
-                'truncate text-[11px] font-medium',
-                view.tone === 'positive' && 'text-green-400',
-                view.tone === 'warning' && 'text-yellow-400',
-                view.tone === 'negative' && 'text-red-400',
-                view.tone === 'neutral' && 'text-slate-300',
-              )}
-            >
-              {view.detail}
-            </p>
-          </div>
-        </>
+        <div
+          className={cn(
+            'ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold',
+            toneStyles[view.tone],
+          )}
+        >
+          <span
+            className={cn(
+              'h-1.5 w-1.5 shrink-0 rounded-full',
+              dotStyles[view.tone],
+              view.open && 'animate-pulse',
+            )}
+          />
+          <span className="whitespace-nowrap">{view.label}</span>
+          <span className="hidden whitespace-nowrap font-normal opacity-75 sm:inline">
+            · {view.detail}
+          </span>
+        </div>
       ) : null}
     </div>
   )

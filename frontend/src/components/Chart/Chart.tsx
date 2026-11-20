@@ -434,7 +434,7 @@ export function Chart({
     const resizeObserver = new ResizeObserver(handleResize)
     resizeObserver.observe(containerRef.current)
 
-    return () => {
+return () => {
       cancelAnimationFrame(resizeFrame)
       resizeObserver.disconnect()
       lastPriceLineRef.current = null
@@ -442,29 +442,11 @@ export function Chart({
       chartRef.current = null
       onReady?.(null)
     }
-  }, [
-    data,
-    symbol,
-    predictions,
-    enabledIndicators,
-    volume,
-    height,
-    chartType,
-    isDark,
-    onReady,
-    chartBg,
-    chartText,
-    chartGrid,
-    chartBorder,
-    formatData,
-    formatLine,
-    formatVolumeData,
-    formatPrediction,
-    formatBands,
-    formatSMA,
-    formatEMA,
-    formatBollinger,
-  ])
+    // The formatters below are stable (useCallback with [] deps) and the theme
+    // colours are derived values; including them would force the chart to
+    // rebuild on every parent render, which is what caused the render loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, symbol, predictions, enabledIndicators, volume, height, chartType, isDark])
 
   return (
     <div className={cn('relative w-full h-full', className)}>
