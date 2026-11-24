@@ -26,6 +26,16 @@ export interface PastForecast {
   predictions: ForecastPoint[]
   userNote: string | null
   userExpectedDirection: string | null
+  /** Date the final forecast point targets, e.g. "2026-11-30". */
+  targetDate: string | null
+  /** What the model expected for that date. */
+  predictedTarget: number | null
+  /** The close that actually printed, or null while the date is still ahead. */
+  actualPrice: number | null
+  /** (actual - predicted) / predicted * 100, or null when not yet scorable. */
+  errorPct: number | null
+  /** Most recent close, for context while a forecast is still running. */
+  latestClose: number | null
 }
 
 export interface PredictionHistoryResponse {
@@ -36,8 +46,10 @@ export interface PredictionHistoryResponse {
 export function usePredictionHistory(symbol: string | null | undefined) {
   return useQuery({
     queryKey: ['prediction-history', symbol],
+    // The axios client has no baseURL, so the /api prefix must be explicit —
+    // every other call in services/api.ts includes it.
     queryFn: () =>
-      api.get<PredictionHistoryResponse>(`/predictions/${symbol}/history`).then((r) => r.data),
+      api.get<PredictionHistoryResponse>(`/api/predictions/${symbol}/history`).then((r) => r.data),
     enabled: !!symbol,
     staleTime: 60_000,
   })
@@ -55,7 +67,7 @@ export function useUpdatePredictionNote() {
       if (params.note !== undefined) qs.set('note', params.note)
       if (params.expectedDirection !== undefined)
         qs.set('expected_direction', params.expectedDirection)
-      return api.patch(`/predictions/${params.symbol}/${params.predictionId}?${qs.toString()}`)
+      return api.patch(`/api/predictions/${params.symbol}/${params.predictionId}?${qs.toString()}`)
     },
   }
 }

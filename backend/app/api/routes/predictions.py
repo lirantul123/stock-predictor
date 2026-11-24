@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
+from datetime import datetime, timedelta, timezone
 from app.db.session import get_db
 from app.models import Symbol, PriceHistory, Prediction, ModelArtifact
 from app.schemas import PredictionResponse, PredictionPoint
@@ -68,21 +69,54 @@ async def get_prediction(
                 db.add(sym_row)
                 await db.flush()
 
-            record = Prediction(
-                symbol_id=sym_row.id,
-                horizon=f"{horizon}d",
-                current_price=closes[-1],
-                ensemble_signal=ensemble["ensemble_signal"],
-                ml_signal=ensemble["ml_signal"],
-                technical_signal=ensemble["technical_signal"],
-                agreement=ensemble["agreement"],
-                confidence=ensemble["confidence"],
-                model_version=ensemble["model_version"],
-                predictions_json=json.dumps(ml_predictions),
-                baseline_price=closes[-1],
-                baseline_timestamp=points[-1].timestamp,
-            )
-            db.add(record)
+            # The dashboard refetches the prediction on a timer, so the same
+            # forecast would otherwise be inserted over and over. Keep one row
+            # per symbol+horizon per day and refresh it in place.
+            day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            existing = (
+                await db.execute(
+                    select(Prediction)
+                    .where(
+                        Prediction.symbol_id == sym_row.id,
+                        Prediction.horizon == f"{horizon}d",
+                        Prediction.generated_at >= day_start,
+                    )
+                    .order_by(Prediction.generated_at.desc())
+                    .limit(1)
+                )
+            ).scalar_one_or_none()
+
+            if existing is not None:
+                existing.current_price = closes[-1]
+                existing.ensemble_signal = ensemble["ensemble_signal"]
+                existing.ml_signal = ensemble["ml_signal"]
+                existing.technical_signal = ensemble["technical_signal"]
+                existing.agreement = ensemble["agreement"]
+                existing.confidence = ensemble["confidence"]
+                existing.model_version = ensemble["model_version"]
+                existing.predictions_json = json.dumps(ml_predictions)
+                existing.baseline_price = closes[-1]
+                existing.baseline_timestamp = points[-1].timestamp
+                existing.expires_at = datetime.now(timezone.utc) + timedelta(days=horizon)
+            else:
+                record = Prediction(
+                    symbol_id=sym_row.id,
+                    horizon=f"{horizon}d",
+                    current_price=closes[-1],
+                    ensemble_signal=ensemble["ensemble_signal"],
+                    ml_signal=ensemble["ml_signal"],
+                    technical_signal=ensemble["technical_signal"],
+                    agreement=ensemble["agreement"],
+                    confidence=ensemble["confidence"],
+                    model_version=ensemble["model_version"],
+                    predictions_json=json.dumps(ml_predictions),
+                    baseline_price=closes[-1],
+                    baseline_timestamp=points[-1].timestamp,
+                    # expires_at is NOT NULL; without it the insert rolls back and
+                    # no forecast is ever recorded.
+                    expires_at=datetime.now(timezone.utc) + timedelta(days=horizon),
+                )
+                db.add(record)
             await db.commit()
         except Exception as exc:
             logger.error("Prediction record failed", symbol=symbol, error=str(exc))
@@ -175,12 +209,58 @@ async def prediction_history(
             )
         ).scalars().all()
 
+        # Daily closes let us score each forecast against what really happened.
+        closes_by_date: dict[str, float] = {}
+        try:
+            daily = await yfinance.get_daily_adjusted(symbol, outputsize="compact")
+            for p in daily:
+                closes_by_date[datetime.fromtimestamp(p.timestamp / 1000, tz=timezone.utc).date().isoformat()] = p.close
+        except Exception:
+            daily = []
+
+        latest_close = daily[-1].close if daily else None
+
         out = []
         for r in rows:
             try:
                 points = json.loads(r.predictions_json)
             except Exception:
                 points = []
+
+            # The stored JSON is snake_case (it comes straight from the model),
+            # but the frontend types expect camelCase. Normalise here so the
+            # history view can read predictedClose without a translation layer.
+            normalised = [
+                {
+                    "date": p.get("date"),
+                    "predictedClose": p.get("predicted_close"),
+                    "upperBound": p.get("upper_bound"),
+                    "lowerBound": p.get("lower_bound"),
+                    "confidence": p.get("confidence"),
+                    "direction": p.get("direction"),
+                }
+                for p in points
+                if isinstance(p, dict)
+            ]
+            points = normalised
+
+            # Score the final target: what the model expected for that date
+            # versus the close that actually printed (or the latest close if
+            # the target date has not arrived yet).
+            actual_price = None
+            target_date = None
+            if points:
+                target_date = points[-1].get("date")
+                actual_price = closes_by_date.get(target_date)
+            if actual_price is None and target_date and latest_close is not None:
+                # Target is in the future — mark it pending rather than wrong.
+                actual_price = None
+
+            predicted_target = points[-1].get("predictedClose") if points else None
+            error_pct = None
+            if actual_price is not None and predicted_target:
+                error_pct = (actual_price - predicted_target) / predicted_target * 100
+
             out.append({
                 "id": r.id,
                 "horizon": r.horizon,
@@ -197,6 +277,12 @@ async def prediction_history(
                 "predictions": points,
                 "userNote": r.user_note,
                 "userExpectedDirection": r.user_expected_direction,
+                # Scoring: what the model expected vs what the market did.
+                "targetDate": target_date,
+                "predictedTarget": predicted_target,
+                "actualPrice": actual_price,
+                "errorPct": error_pct,
+                "latestClose": latest_close,
             })
         return {"symbol": symbol, "forecasts": out}
     except Exception as e:

@@ -1,7 +1,38 @@
 import { useState } from 'react'
-import { usePredictionHistory } from '../../hooks/usePredictionHistory'
+import { usePredictionHistory, type PastForecast } from '../../hooks/usePredictionHistory'
 import { cn, formatPrice } from '../../utils/helpers'
 import { useMarketStore } from '../../stores'
+
+/** One-line verdict on how a past forecast turned out. */
+function ScoreBadge({ forecast }: { forecast: PastForecast }) {
+  const { predictedTarget, actualPrice, errorPct, latestClose } = forecast
+
+  if (actualPrice == null || predictedTarget == null) {
+    // Target date is still ahead — say so instead of implying the model was wrong.
+    const running = latestClose != null ? formatPrice(latestClose, 'USD') : null
+    return (
+      <span className="rounded-md bg-slate-800 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-slate-400">
+        Pending{running ? ` · now ${running}` : ''}
+      </span>
+    )
+  }
+
+  const abs = Math.abs(errorPct ?? 0)
+  const hit = abs <= 2
+  const near = abs <= 5
+  const tone = hit
+    ? 'bg-green-500/15 text-green-400'
+    : near
+      ? 'bg-yellow-500/15 text-yellow-400'
+      : 'bg-red-500/15 text-red-400'
+
+  return (
+    <span className={cn('rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase', tone)}>
+      {hit ? 'On target' : near ? 'Close' : 'Off'} · {errorPct! >= 0 ? '+' : ''}
+      {errorPct!.toFixed(1)}%
+    </span>
+  )
+}
 
 export function PredictionHistory() {
   const { currentSymbol } = useMarketStore()
@@ -45,7 +76,7 @@ export function PredictionHistory() {
               className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left"
             >
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-sm font-bold text-slate-100">
                     {formatPrice(f.currentPrice, "USD")}
                   </span>
@@ -55,6 +86,7 @@ export function PredictionHistory() {
                   <span className="rounded-md bg-slate-800 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-slate-400">
                     {f.horizon}
                   </span>
+                  <ScoreBadge forecast={f} />
                 </div>
                 <div className="mt-1 flex items-center gap-2 text-[10px]">
                   <span className="text-slate-500">
@@ -82,6 +114,42 @@ export function PredictionHistory() {
 
             {isExpanded && (
               <div className="border-t border-slate-800/60 px-3 py-2">
+                {/* Expected vs actual — the answer to "what did it think would happen?" */}
+                <div className="mb-2 rounded-lg border border-slate-800/70 bg-slate-950/50 p-2">
+                  <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-slate-600">
+                    Expected vs actual
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 text-[10px]">
+                    <div>
+                      <p className="text-slate-500">Then</p>
+                      <p className="font-mono font-medium text-slate-200">
+                        {formatPrice(f.baselinePrice ?? f.currentPrice, "USD")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Expected {f.targetDate ?? ''}</p>
+                      <p className="font-mono font-medium text-primary-300">
+                        {f.predictedTarget != null ? formatPrice(f.predictedTarget, "USD") : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Actual</p>
+                      <p
+                        className={cn(
+                          'font-mono font-medium',
+                          f.actualPrice == null
+                            ? 'text-slate-400'
+                            : f.actualPrice >= (f.predictedTarget ?? 0)
+                              ? 'text-green-400'
+                              : 'text-red-400',
+                        )}
+                      >
+                        {f.actualPrice != null ? formatPrice(f.actualPrice, "USD") : 'pending'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-3 gap-2 text-[10px]">
                   <div>
                     <p className="text-slate-500">Baseline</p>
