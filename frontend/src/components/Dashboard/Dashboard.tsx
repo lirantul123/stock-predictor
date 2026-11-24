@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Chart } from '../Chart/Chart'
 import { chartTypes, type ChartType } from '../Chart/chartTypes'
 import { IndicatorPanel } from '../Indicators/IndicatorPanel'
@@ -13,6 +13,7 @@ import { MarketHours, MarketStatusPill } from '../MarketStatus/MarketStatus'
 import { PriceTicker } from '../PriceTicker/PriceTicker'
 import { Section } from '../Common/Section'
 import { useMarketStore, useUIStore } from '../../stores'
+import { useDrawingStore } from '../../stores/drawings'
 import { useMarketData, usePopularSymbols } from '../../hooks/useMarketData'
 import { cn, currencyOf, formatPrice, formatChange } from '../../utils/helpers'
 import { describeMarket } from '../../utils/market'
@@ -20,13 +21,29 @@ import type { IChartApi } from 'lightweight-charts'
 import type { Trendline } from '../Chart/trendlines'
 import type { DrawingMode } from '../Chart/TrendlineToolbar'
 
+/** Shared empty array so the memo above keeps a stable reference. */
+const EMPTY_TRENDLINES: Trendline[] = []
+
 export function Dashboard() {
   const { currentSymbol } = useMarketStore()
   const { selectedTimeframe, settings, indicatorPanelOpen, predictionPanelOpen, predictionHorizon, setPredictionHorizon, toggleIndicatorPanel, togglePredictionPanel } = useUIStore()
   const [chartType, setChartType] = useState<ChartType>('candles')
   const [chartApi, setChartApi] = useState<IChartApi | null>(null)
-  const [trendlines, setTrendlines] = useState<Trendline[]>([])
   const [drawingMode, setDrawingMode] = useState<DrawingMode>('none')
+  const drawingsBySymbol = useDrawingStore((s) => s.bySymbol)
+  const setLines = useDrawingStore((s) => s.setLines)
+  // Derive a stable array reference: the store may have no entry for a symbol,
+  // and returning a fresh [] from a selector would loop on every render.
+  const trendlines = useMemo(
+    () => (currentSymbol ? drawingsBySymbol[currentSymbol] ?? EMPTY_TRENDLINES : EMPTY_TRENDLINES),
+    [drawingsBySymbol, currentSymbol],
+  )
+  const setTrendlines = useCallback(
+    (lines: Trendline[]) => {
+      if (currentSymbol) setLines(currentSymbol, lines)
+    },
+    [currentSymbol, setLines],
+  )
 
   const { quote, history, indicators, prediction, predictionError, isLoading, isError, error, refetch } = useMarketData(currentSymbol, selectedTimeframe)
 

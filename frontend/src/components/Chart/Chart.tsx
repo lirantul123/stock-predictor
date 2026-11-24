@@ -21,6 +21,8 @@ import { userTimeZone } from '../../utils/market'
 import { useUIStore } from '../../stores'
 import type { ChartType } from './chartTypes'
 import { TrendlineToolbar } from './TrendlineToolbar'
+import { TrendlineOverlay } from './TrendlineOverlay'
+import { hitTestTrendline } from './trendlineProjection'
 import { createTrendline } from './trendlines'
 import type { Trendline } from './trendlines'
 import type { DrawingMode } from './TrendlineToolbar'
@@ -73,9 +75,20 @@ export function Chart({
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
+  const seriesRef = useRef<ISeriesApi<'Candlestick'> | ISeriesApi<'Line'> | ISeriesApi<'Area'> | null>(null)
   const lastPriceLineRef = useRef<IPriceLine | null>(null)
   const [legend, setLegend] = useState<LegendData | null>(null)
+  const [plotSize, setPlotSize] = useState({ width: 0, height: 0 })
   const [internalDrawingMode, setInternalDrawingMode] = useState<DrawingMode>(drawingMode as DrawingMode)
+
+  // Drawing state lives in refs so the chart is not torn down and rebuilt every
+  // time a line is added — a rebuild would reset the user's pan and zoom.
+  const trendlinesRef = useRef<Trendline[]>(trendlines)
+  const onTrendlinesChangeRef = useRef(onTrendlinesChange)
+  trendlinesRef.current = trendlines
+  onTrendlinesChangeRef.current = onTrendlinesChange
+  const plotSizeRef = useRef(plotSize)
+  plotSizeRef.current = plotSize
   const theme = useUIStore((s) => s.settings.theme)
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   const chartBg = isDark ? '#0f172a' : '#f8fafc'
@@ -287,6 +300,8 @@ export function Chart({
       mainSeries = series
     }
 
+    seriesRef.current = mainSeries
+
     if (data.length > 0) {
       const last = data[data.length - 1]
       lastPriceLineRef.current = mainSeries.createPriceLine({
@@ -445,15 +460,21 @@ export function Chart({
       cancelAnimationFrame(resizeFrame)
       resizeFrame = requestAnimationFrame(() => {
         if (!containerRef.current) return
-        chart.applyOptions({
-          width: containerRef.current.clientWidth,
-          height: height ?? containerRef.current.clientHeight,
-        })
+        const width = containerRef.current.clientWidth
+        const nextHeight = height ?? containerRef.current.clientHeight
+        chart.applyOptions({ width, height: nextHeight })
+        setPlotSize({ width, height: nextHeight })
       })
     }
 
-const resizeObserver = new ResizeObserver(handleResize)
+    const resizeObserver = new ResizeObserver(handleResize)
     resizeObserver.observe(containerRef.current)
+    // Prime the overlay size on mount; ResizeObserver fires once immediately,
+    // but the first paint can happen before that callback runs.
+    setPlotSize({
+      width: containerRef.current.clientWidth,
+      height: height ?? containerRef.current.clientHeight,
+    })
 
     // --- Drawing: click to place the first point, click again to finish ---
     let activeDraw: { mode: DrawingMode } | null = drawingMode !== 'none' ? { mode: drawingMode } : null
@@ -470,7 +491,7 @@ const resizeObserver = new ResizeObserver(handleResize)
         pendingStart.time,
         time,
       )
-      onTrendlinesChange?.([...trendlines, line])
+      onTrendlinesChangeRef.current?.([...trendlinesRef.current, line])
       pendingStart = null
       activeDraw = null
     }
@@ -486,7 +507,7 @@ const resizeObserver = new ResizeObserver(handleResize)
           time,
           time,
         )
-        onTrendlinesChange?.([...trendlines, line])
+        onTrendlinesChangeRef.current?.([...trendlinesRef.current, line])
         return
       }
       pendingStart = { time, price }
@@ -495,6 +516,24 @@ const resizeObserver = new ResizeObserver(handleResize)
     chart.subscribeClick((param: MouseEventParams) => {
       if (!activeDraw) return
       if (!param.point || !param.time) return
+
+      // Erase mode: drop the line nearest the click.
+      if (activeDraw.mode === 'erase') {
+        if (!seriesRef.current) return
+        const id = hitTestTrendline(
+          trendlinesRef.current,
+          chart,
+          seriesRef.current,
+          { x: param.point.x, y: param.point.y },
+          plotSizeRef.current.width,
+          plotSizeRef.current.height,
+        )
+        if (id) {
+          onTrendlinesChangeRef.current?.(trendlinesRef.current.filter((l) => l.id !== id))
+        }
+        return
+      }
+
       const price = mainSeries?.coordinateToPrice(param.point.y)
       if (price == null || !isFinite(price)) return
       const time = Number(param.time) as UTCTimestamp
@@ -509,6 +548,7 @@ const resizeObserver = new ResizeObserver(handleResize)
       cancelAnimationFrame(resizeFrame)
       resizeObserver.disconnect()
       lastPriceLineRef.current = null
+      seriesRef.current = null
       chart.remove()
       chartRef.current = null
       onReady?.(null)
@@ -516,12 +556,22 @@ const resizeObserver = new ResizeObserver(handleResize)
     // The formatters below are stable (useCallback with [] deps) and the theme
     // colours are derived values; including them would force the chart to
     // rebuild on every parent render, which is what caused the render loop.
+    // Trendlines are read through refs (see above) so adding a line does not
+    // reset the user's pan/zoom.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, symbol, predictions, enabledIndicators, volume, height, chartType, isDark, drawingMode, trendlines, onTrendlinesChange, onDrawingModeChange])
+  }, [data, symbol, predictions, enabledIndicators, volume, height, chartType, isDark, drawingMode])
 
   return (
     <div className={cn('relative w-full h-full', className)}>
       <div ref={containerRef} className="w-full h-full" style={height ? { height } : undefined} />
+
+      <TrendlineOverlay
+        chart={chartRef.current}
+        series={seriesRef.current}
+        lines={trendlines}
+        width={plotSize.width}
+        height={plotSize.height}
+      />
 
       {drawingMode !== 'none' && (
         <TrendlineToolbar
