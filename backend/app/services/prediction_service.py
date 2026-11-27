@@ -29,25 +29,35 @@ class LSTMModel(nn.Module):
         super().__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        
+
+        # Bidirectional LSTM gives the model both past and future context
+        # within the lookback window, which helps capture turning points.
         self.lstm = nn.LSTM(
             input_size=input_size,
             hidden_size=hidden_size,
             num_layers=num_layers,
             batch_first=True,
             dropout=dropout if num_layers > 1 else 0,
+            bidirectional=True,
         )
-        
+
+        # Attention over the time dimension: lets the model focus on the
+        # most informative days instead of only the last step.
+        self.attn = nn.Linear(hidden_size * 2, 1)
+
         self.dropout = nn.Dropout(dropout)
-        self.fc1 = nn.Linear(hidden_size, 64)
+        self.fc1 = nn.Linear(hidden_size * 2, 64)
         self.fc2 = nn.Linear(64, 32)
         self.fc3 = nn.Linear(32, output_size)
         self.relu = nn.ReLU()
-        
+
     def forward(self, x):
-        lstm_out, _ = self.lstm(x)
-        out = lstm_out[:, -1, :]
-        out = self.dropout(out)
+        lstm_out, _ = self.lstm(x)  # (batch, seq, 2*hidden)
+        # Attention weights over time.
+        scores = self.attn(lstm_out).squeeze(-1)  # (batch, seq)
+        weights = torch.softmax(scores, dim=1).unsqueeze(-1)  # (batch, seq, 1)
+        context = torch.sum(lstm_out * weights, dim=1)  # (batch, 2*hidden)
+        out = self.dropout(context)
         out = self.relu(self.fc1(out))
         out = self.dropout(out)
         out = self.relu(self.fc2(out))
@@ -237,7 +247,9 @@ class PredictionService:
         for step in range(horizon):
             current = closes[step:valid_len + step]
             following = closes[step + 1:valid_len + step + 1]
-            targets[:, step] = (following - current) / current
+            # Log returns are more stable and symmetric than simple returns and
+            # keep the target distribution closer to normal.
+            targets[:, step] = np.log(following / current)
 
         X, y = self.feature_engineer.prepare_sequences(features_scaled, targets)
 
@@ -357,7 +369,18 @@ class PredictionService:
         model.eval()
         with torch.no_grad():
             pred = model(X).numpy()[0]
-        
+
+        # MC Dropout: run the model several times with dropout enabled to get
+        # an empirical uncertainty estimate instead of a fixed heuristic.
+        mc_preds = []
+        model.train()
+        with torch.no_grad():
+            for _ in range(20):
+                mc_preds.append(model(X).numpy()[0])
+        model.eval()
+        mc_preds = np.array(mc_preds)
+        mc_std = mc_preds.std(axis=0) if mc_preds.shape[0] > 1 else np.zeros_like(pred)
+
         current_price = closes[-1]
         predictions = []
 
@@ -371,10 +394,11 @@ class PredictionService:
         trading_days = next_trading_days(horizon, start_date)
 
         for i in range(model_steps):
-            pred_return = float(pred[i])
+            # Convert the log return back to a price multiplier.
+            pred_return = float(np.expm1(pred[i]))
             pred_price = current_price * (1 + pred_return)
 
-            uncertainty = base_uncertainty * (1 + i * 0.15)
+            uncertainty = max(base_uncertainty, float(mc_std[i])) * (1 + i * 0.15)
             upper = pred_price * (1 + uncertainty)
             lower = pred_price * (1 - uncertainty)
             confidence = max(0.3, min(0.95, 1.0 - base_uncertainty * 10 - i * 0.02))
@@ -396,13 +420,13 @@ class PredictionService:
         # Extrapolate beyond the model's native horizon using a damped continuation
         # of the last predicted return, so horizons > 5 are still useful.
         if horizon > model_steps:
-            last_return = float(pred[-1]) if model_steps > 0 else 0.0
+            last_return = float(np.expm1(pred[-1])) if model_steps > 0 else 0.0
             damped_return = last_return
             for i in range(model_steps, horizon):
                 damped_return *= 0.5
                 pred_price = current_price * (1 + damped_return)
 
-                uncertainty = base_uncertainty * (1 + i * 0.18)
+                uncertainty = max(base_uncertainty, float(mc_std[i])) * (1 + i * 0.18)
                 upper = pred_price * (1 + uncertainty)
                 lower = pred_price * (1 - uncertainty)
                 confidence = max(0.2, min(0.95, 1.0 - base_uncertainty * 10 - i * 0.03))
