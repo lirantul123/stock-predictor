@@ -102,7 +102,11 @@ class ModelStore:
             num_layers=settings.lstm_num_layers,
             dropout=settings.dropout,
         )
-        model.load_state_dict(torch.load(model_path, map_location='cpu'))
+        try:
+            model.load_state_dict(torch.load(model_path, map_location='cpu'))
+        except Exception as exc:
+            logger.warning("Model load failed", symbol=symbol, error=str(exc))
+            return None, None, None
         model.eval()
         
         scaler = joblib.load(scaler_path)
@@ -121,6 +125,14 @@ class ModelStore:
             with open(metadata_file, 'r') as f:
                 metadata = json.load(f)
             metadata['symbol'] = symbol
+            # Only advertise models that actually load with the current
+            # architecture. Old checkpoints from a previous (unidirectional)
+            # build no longer match the bidirectional model and would otherwise
+            # show as "Trained" while every prediction fails.
+            input_size = metadata.get("input_size", 20)
+            model, scaler, _ = self.load_model(symbol, input_size)
+            if model is None or scaler is None:
+                continue
             models.append(metadata)
         return models
 
