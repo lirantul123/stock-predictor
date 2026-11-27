@@ -14,9 +14,11 @@ A professional stock prediction platform combining LSTM deep learning with techn
 ## Features
 
 - 📈 **Professional Charts** - TradingView Lightweight Charts with candlesticks, volume, indicators
-- 🤖 **ML Predictions** - LSTM models trained per symbol with 5-day forecast
+- ✏️ **Drawing Tools** - Trendlines, rays, horizontals/verticals, erase; persisted per symbol
+- 🤖 **ML Predictions** - Per-symbol LSTM with bidirectional layers + temporal attention
 - 📊 **Technical Indicators** - RSI, MACD, Bollinger Bands, SMA/EMA, Stochastic, ATR, ADX, OBV
 - 🎯 **Ensemble Signals** - Combined ML + technical analysis with agreement scoring
+- 📜 **Forecast History** - Past forecasts scored against the actual close (expected vs actual)
 - ⚡ **Real-time Updates** - WebSocket live price feeds
 - 👁️ **Watchlist** - Persistent localStorage watchlist
 - 🌙 **Dark/Light Theme** - System-aware with manual toggle
@@ -190,6 +192,8 @@ stock-predictor/
 - `GET /api/predictions/{symbol}?horizon=5` - Ensemble prediction
 - `POST /api/predictions/{symbol}/train` - Train model
 - `GET /api/predictions/models/list` - List trained models
+- `GET /api/predictions/{symbol}/history` - Past forecasts scored vs actual
+- `PATCH /api/predictions/{symbol}/{id}` - Annotate a forecast (note, expected direction)
 
 ### Watchlist
 - `GET /api/watchlist` - Get watchlist
@@ -216,11 +220,27 @@ All indicators implemented without TA-Lib dependency:
 
 ## ML Model
 
-- **Architecture**: 2-layer LSTM (128 hidden) → Dense(64) → Dense(32) → Dense(5)
+- **Architecture**: Bidirectional 2-layer LSTM (128 hidden) with temporal
+  attention → Dense(64) → Dense(32) → Dense(5)
 - **Input**: 30 days × 20 features (OHLCV + 15 technical indicators)
-- **Output**: 5-day forward returns prediction
-- **Training**: Walk-forward validation, early stopping, ReduceLROnPlateau
-- **Ensemble**: 60% LSTM + 40% Technical consensus
+- **Targets**: 5-day log returns (more stable and symmetric than simple returns)
+- **Uncertainty**: MC Dropout (20 stochastic forward passes) produces empirical
+  confidence bands instead of a fixed heuristic
+- **Training**: 80/20 split, Adam, MSE loss, gradient clipping, early stopping,
+  ReduceLROnPlateau
+- **Ensemble**: ML signal (from the final day's direction) combined with a
+  technical signal (RSI/MACD/SMA rules); agreement scored strong/moderate/
+  weak/conflict
+- **Extrapolation**: horizons beyond 5 days continue with the last predicted
+  return damped by 0.5 per step
+- **Trading days**: forecasts land on real sessions (weekends skipped)
+
+### Forecast history
+
+Each prediction is persisted with its baseline price, so past forecasts can be
+scored against the close that actually printed. The **Forecast history** panel
+shows an **Expected vs actual** block per run (Pending while the target date is
+still ahead).
 
 ## Configuration
 
